@@ -17,13 +17,17 @@ export default function Home() {
   const startListening = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({audio:true})
-      const mr = new MediaRecorder(stream)
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 
+                    MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : ''
+      const mr = new MediaRecorder(stream, mimeType ? {mimeType} : {})
       mediaRecorderRef.current = mr
       audioChunksRef.current = []
       mr.ondataavailable = e => { if(e.data.size > 0) audioChunksRef.current.push(e.data) }
       mr.onstop = async () => {
         stream.getTracks().forEach(t => t.stop())
-        const blob = new Blob(audioChunksRef.current, {type:'audio/webm'})
+        const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 
+                         MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : 'audio/wav'
+        const blob = new Blob(audioChunksRef.current, {type: mimeType})
         await processAudio(blob)
       }
       mr.start()
