@@ -98,8 +98,8 @@ export default function Home() {
       const utterance = new SpeechSynthesisUtterance(data.response)
       utterance.lang = 'id-ID'
       utterance.rate = 0.9
-      utterance.onend = () => { setTranscript(''); setResponse(''); if(activeRef.current) restartRecording() }
-      utterance.onerror = () => { if(activeRef.current) restartRecording() }
+      utterance.onend = () => { setTranscript(''); setResponse(''); if(activeRef.current) startRecording() }
+      utterance.onerror = () => { if(activeRef.current) startRecording() }
       window.speechSynthesis.cancel()
       window.speechSynthesis.speak(utterance)
     } catch(e){console.error(e);updateState('listening')}
