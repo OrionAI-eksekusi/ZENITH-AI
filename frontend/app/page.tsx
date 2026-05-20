@@ -196,7 +196,7 @@ export default function Home() {
           {/* Response */}
           {response && (
             <div style={{animation:'fadeIn 0.3s ease',maxWidth:380,margin:'0 auto',padding:'16px 20px',background:'rgba(77,123,255,0.05)',border:'1px solid rgba(77,123,255,0.1)',borderRadius:16}}>
-              <div style={{fontSize:14,color:'rgba(220,232,255,0.85)',lineHeight:1.7,fontFamily:"'JetBrains Mono',monospace",fontSize:12,letterSpacing:'0.03em'}}>{response}</div>
+              <div style={{color:'rgba(220,232,255,0.85)',lineHeight:1.7,fontFamily:"'JetBrains Mono',monospace",fontSize:12,letterSpacing:'0.03em'}}>{response}</div>
             </div>
           )}
         </div>
