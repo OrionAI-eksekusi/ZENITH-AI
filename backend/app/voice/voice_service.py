@@ -7,37 +7,35 @@ import asyncio
 import httpx
 from elevenlabs import ElevenLabs, VoiceSettings
 
-ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", "")
-ELEVENLABS_VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID", "pNInz6obpgDQGcFmaJgB")
+def get_client():
+    key = os.getenv("ELEVENLABS_API_KEY", "")
+    if not key:
+        raise ValueError("ELEVENLABS_API_KEY tidak ada")
+    return ElevenLabs(api_key=key)
 
-client = ElevenLabs(api_key=ELEVENLABS_API_KEY) if ELEVENLABS_API_KEY else None
+def get_voice_id():
+    return os.getenv("ELEVENLABS_VOICE_ID", "pNInz6obpgDQGcFmaJgB")
 
-
-async def speech_to_text(audio_bytes: bytes, content_type: str = "audio/webm") -> str:
-    """Convert audio bytes ke teks via ElevenLabs STT"""
+async def speech_to_text(audio_bytes: bytes, content_type: str = "audio/wav") -> str:
+    key = os.getenv("ELEVENLABS_API_KEY", "")
     try:
         async with httpx.AsyncClient(timeout=30) as http:
             response = await http.post(
                 "https://api.elevenlabs.io/v1/speech-to-text",
-                headers={"xi-api-key": ELEVENLABS_API_KEY},
-                files={"file": ("audio.webm", audio_bytes, content_type)},
+                headers={"xi-api-key": key},
+                files={"file": ("audio.wav", audio_bytes, content_type)},
                 data={"model_id": "scribe_v1"},
             )
-            data = response.json()
-            return data.get("text", "").strip()
+            return response.json().get("text", "").strip()
     except Exception as e:
         print(f"[STT ERROR] {e}")
         return ""
 
-
 async def text_to_speech(text: str) -> bytes:
-    """Convert teks ke audio bytes via ElevenLabs TTS"""
-    if not client:
-        raise ValueError("ElevenLabs API key tidak ada")
-
     def _tts():
+        client = get_client()
         audio = client.text_to_speech.convert(
-            voice_id=ELEVENLABS_VOICE_ID,
+            voice_id=get_voice_id(),
             text=text,
             model_id="eleven_multilingual_v2",
             voice_settings=VoiceSettings(
@@ -49,5 +47,4 @@ async def text_to_speech(text: str) -> bytes:
             output_format="mp3_44100_128",
         )
         return b"".join(audio)
-
     return await asyncio.to_thread(_tts)
