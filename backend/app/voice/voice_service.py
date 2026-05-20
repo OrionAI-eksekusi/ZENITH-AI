@@ -8,9 +8,7 @@ import httpx
 from elevenlabs import ElevenLabs, VoiceSettings
 
 def get_client():
-    key = os.getenv("ELEVENLABS_API_KEY", "")
-    if not key:
-        raise ValueError("ELEVENLABS_API_KEY tidak ada")
+    key = os.getenv("ELEVENLABS_API_KEY", "f5163f6d81ff94146f967a73985f7b16331a97b258e65568fd72900e514fd92a")
     return ElevenLabs(api_key=key)
 
 def get_voice_id():
