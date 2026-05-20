@@ -12,86 +12,93 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
   const [voiceState, setVoiceState] = useState<VoiceState>('idle')
   const msgEndRef = useRef<HTMLDivElement>(null)
-  const audioRef = useRef<HTMLAudioElement | null>(null)
-  const voiceStateRef = useRef<VoiceState>('idle')
+  const mediaRecorderRef = useRef<MediaRecorder|null>(null)
+  const audioChunksRef = useRef<Blob[]>([])
+  const audioRef = useRef<HTMLAudioElement|null>(null)
+  const streamRef = useRef<MediaStream|null>(null)
 
   useEffect(() => { msgEndRef.current?.scrollIntoView({behavior:'smooth'}) }, [messages, loading])
 
-  // Sync ref dengan state
-  useEffect(() => { voiceStateRef.current = voiceState }, [voiceState])
+  const startListening = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({audio:true})
+      streamRef.current = stream
+      const mr = new MediaRecorder(stream)
+      mediaRecorderRef.current = mr
+      audioChunksRef.current = []
 
-  const handleVoiceMessage = async (text: string) => {
+      mr.ondataavailable = e => { if(e.data.size > 0) audioChunksRef.current.push(e.data) }
+
+      mr.onstop = async () => {
+        stream.getTracks().forEach(t => t.stop())
+        const blob = new Blob(audioChunksRef.current, {type:'audio/webm'})
+        await processAudio(blob)
+      }
+
+      mr.start()
+      setVoiceState('listening')
+    } catch(e) {
+      console.error('[MIC ERROR]', e)
+      alert('Izinkan akses microphone di browser kamu.')
+    }
+  }
+
+  const stopListening = () => {
+    mediaRecorderRef.current?.stop()
     setVoiceState('thinking')
-    voiceStateRef.current = 'thinking'
+  }
+
+  const processAudio = async (blob: Blob) => {
     setLoading(true)
     const time = new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})
-    setMessages(prev => [...prev, {role:'user', text, time}])
     try {
-      const res = await fetch(`${BACKEND}/voice/chat`, {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({user_id: USER_ID, message: text})
-      })
+      const form = new FormData()
+      form.append('audio', blob, 'audio.webm')
+      form.append('user_id', USER_ID)
+
+      const res = await fetch(`${BACKEND}/voice/transcribe`, {method:'POST', body:form})
       const data = await res.json()
+
+      if (data.status !== 'success') {
+        setVoiceState('idle')
+        setLoading(false)
+        return
+      }
+
+      // Tampilkan transcript user
+      setMessages(prev => [...prev, {role:'user', text: data.transcript, time}])
+
+      // Tampilkan response ZANITH
       const t = new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})
       setMessages(prev => [...prev, {role:'ai', text: data.response, time: t}])
+
+      // Play audio
       if (data.audio_b64) {
         setVoiceState('speaking')
         const audio = new Audio(`data:audio/mp3;base64,${data.audio_b64}`)
         audioRef.current = audio
-        audio.onended = () => { setVoiceState('idle'); voiceStateRef.current = 'idle' }
-        await audio.play()
+        audio.onended = () => setVoiceState('idle')
+        audio.play().catch(e => { console.error('[AUDIO PLAY]', e); setVoiceState('idle') })
       } else {
         setVoiceState('idle')
       }
     } catch(e) {
-      console.error('[VOICE ERROR]', e)
-      setMessages(prev => [...prev, {role:'ai', text:'Koneksi bermasalah.', time:'--:--'}])
+      console.error('[PROCESS ERROR]', e)
+      setMessages(prev => [...prev, {role:'ai', text:'Koneksi bermasalah.', time}])
       setVoiceState('idle')
     }
     setLoading(false)
   }
 
-  const startListening = () => {
-    const SR = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition
-    if (!SR) { alert('Browser tidak support voice. Pakai Chrome.'); return }
-
-    const recognition = new SR()
-    recognition.lang = ''
-    recognition.continuous = false
-    recognition.interimResults = false
-
-    recognition.onstart = () => {
-      console.log('[VOICE] Started listening')
-      setVoiceState('listening')
-    }
-
-    recognition.onresult = (e: any) => {
-      const transcript = e.results[0][0].transcript
-      console.log('[VOICE] Heard:', transcript)
-      recognition.stop()
-      handleVoiceMessage(transcript)
-    }
-
-    recognition.onerror = (e: any) => {
-      console.error('[VOICE] Error:', e.error)
-      setVoiceState('idle')
-    }
-
-    recognition.onend = () => {
-      console.log('[VOICE] Recognition ended, state:', voiceStateRef.current)
-      if (voiceStateRef.current === 'listening') setVoiceState('idle')
-    }
-
-    recognition.start()
-  }
-
-  const toggleVoice = () => {
-    if (voiceState === 'speaking') {
+  const toggleVoice = async () => {
+    if (voiceState === 'idle') {
+      await startListening()
+    } else if (voiceState === 'listening') {
+      stopListening()
+    } else if (voiceState === 'speaking') {
       audioRef.current?.pause()
       setVoiceState('idle')
-      return
     }
-    if (voiceState === 'idle') startListening()
   }
 
   const sendMessage = async (text?: string) => {
@@ -127,7 +134,11 @@ export default function Home() {
   ]
 
   const voiceLabel: Record<VoiceState,string> = {
-    idle: 'VOICE', listening: '● LISTENING', thinking: '◌ THINKING', speaking: '▶ SPEAKING'
+    idle:'VOICE', listening:'● RECORDING — tap untuk stop', thinking:'◌ PROCESSING', speaking:'▶ SPEAKING'
+  }
+
+  const voiceIcon: Record<VoiceState,string> = {
+    idle:'🎙', listening:'⏹', thinking:'◌', speaking:'⏹'
   }
 
   return (
@@ -173,15 +184,24 @@ export default function Home() {
 
             {messages.length === 0 && (
               <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:24,textAlign:'center',minHeight:'55vh',animation:'fadeup 0.4s ease'}}>
+
+                {/* Orb */}
                 <div style={{position:'relative',width:90,height:90,display:'flex',alignItems:'center',justifyContent:'center'}}>
                   {voiceState === 'listening' && [0,0.5,1].map((d,i) => (
-                    <div key={i} style={{position:'absolute',inset:0,borderRadius:'50%',border:'1px solid rgba(0,229,255,0.25)',animation:`ripple 2s ease-out ${d}s infinite`}} />
+                    <div key={i} style={{position:'absolute',inset:0,borderRadius:'50%',border:'1px solid rgba(239,68,68,0.3)',animation:`ripple 2s ease-out ${d}s infinite`}} />
                   ))}
-                  <div style={{width:72,height:72,borderRadius:'50%',background:'rgba(77,159,255,0.04)',border:`1px solid ${voiceState!=='idle'?'rgba(77,159,255,0.3)':'rgba(77,159,255,0.1)'}`,display:'flex',alignItems:'center',justifyContent:'center',animation:voiceState!=='idle'?'glow 2s ease-in-out infinite':'pulse 3s ease-in-out infinite',transition:'all 0.4s'}}>
+                  <div style={{
+                    width:72,height:72,borderRadius:'50%',
+                    background:'rgba(77,159,255,0.04)',
+                    border:`1px solid ${voiceState==='listening'?'rgba(239,68,68,0.4)':voiceState!=='idle'?'rgba(77,159,255,0.3)':'rgba(77,159,255,0.1)'}`,
+                    display:'flex',alignItems:'center',justifyContent:'center',
+                    animation:voiceState!=='idle'?'glow 2s ease-in-out infinite':'pulse 3s ease-in-out infinite',
+                    transition:'all 0.4s',
+                  }}>
                     {voiceState === 'listening' && (
                       <div style={{display:'flex',alignItems:'center',gap:2,height:24}}>
                         {[6,12,18,22,18,12,6].map((h,i) => (
-                          <div key={i} style={{width:2.5,height:h,borderRadius:2,background:'linear-gradient(to top,#4d9fff,#00e5ff)',animation:`wave 0.6s ease-in-out ${i*0.08}s infinite`}} />
+                          <div key={i} style={{width:2.5,height:h,borderRadius:2,background:'linear-gradient(to top,#ef4444,#f97316)',animation:`wave 0.4s ease-in-out ${i*0.06}s infinite`}} />
                         ))}
                       </div>
                     )}
@@ -199,7 +219,7 @@ export default function Home() {
 
                 <div>
                   <div style={{fontSize:24,fontWeight:600,background:'linear-gradient(135deg,#dce8ff,#4d9fff,#00e5ff)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>Halo, saya ZANITH</div>
-                  <div style={{fontSize:14,color:'#3a4d6a',marginTop:8,lineHeight:1.7}}>AI asisten pribadi kamu. Ketik atau tekan 🎙 untuk berbicara.</div>
+                  <div style={{fontSize:14,color:'#3a4d6a',marginTop:8,lineHeight:1.7}}>Ketik atau tekan 🎙 untuk bicara. Tap lagi untuk stop recording.</div>
                 </div>
 
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,width:'100%',maxWidth:480}}>
@@ -251,14 +271,15 @@ export default function Home() {
               <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,marginBottom:10,animation:'fadeup 0.2s ease'}}>
                 <div style={{display:'flex',alignItems:'center',gap:2,height:18}}>
                   {[5,9,13,16,13,9,5].map((h,i) => (
-                    <div key={i} style={{width:2,height:h,borderRadius:2,background:voiceState==='speaking'?'#00e5ff':'#4d9fff',animation:`wave 0.6s ease-in-out ${i*0.07}s infinite`}} />
+                    <div key={i} style={{width:2,height:h,borderRadius:2,background:voiceState==='listening'?'#ef4444':voiceState==='speaking'?'#00e5ff':'#4d9fff',animation:`wave 0.6s ease-in-out ${i*0.07}s infinite`}} />
                   ))}
                 </div>
-                <span style={{fontFamily:'JetBrains Mono,monospace',fontSize:9,color:voiceState==='listening'?'#00e5ff':voiceState==='thinking'?'#7c6fff':'#4d9fff',letterSpacing:'0.12em',animation:'pulse 1.5s ease-in-out infinite'}}>
+                <span style={{fontFamily:'JetBrains Mono,monospace',fontSize:9,color:voiceState==='listening'?'#ef4444':voiceState==='thinking'?'#7c6fff':voiceState==='speaking'?'#00e5ff':'#4d9fff',letterSpacing:'0.1em',animation:'pulse 1.5s ease-in-out infinite'}}>
                   {voiceLabel[voiceState]}
                 </span>
               </div>
             )}
+
             <div style={{background:'rgba(255,255,255,0.025)',border:'1px solid rgba(77,159,255,0.1)',borderRadius:16,padding:'12px 14px',display:'flex',alignItems:'flex-end',gap:10}}>
               <textarea
                 value={input}
@@ -266,15 +287,33 @@ export default function Home() {
                 onKeyDown={handleKey}
                 placeholder={voiceState !== 'idle' ? voiceLabel[voiceState] : "Tanya apa saja ke ZANITH..."}
                 rows={1}
-                disabled={voiceState === 'listening' || voiceState === 'thinking'}
+                disabled={voiceState !== 'idle'}
                 style={{flex:1,background:'none',border:'none',outline:'none',color:'#dce8ff',fontFamily:"'Outfit',sans-serif",fontSize:14,lineHeight:1.6,resize:'none',minHeight:22,maxHeight:120,opacity:voiceState==='idle'?1:0.5}}
               />
-              <button onClick={toggleVoice} style={{width:32,height:32,borderRadius:8,border:`1px solid ${voiceState!=='idle'?'rgba(0,229,255,0.35)':'rgba(77,159,255,0.12)'}`,background:voiceState!=='idle'?'rgba(0,229,255,0.06)':'transparent',color:voiceState!=='idle'?'#00e5ff':'#3a4d6a',cursor:'pointer',fontSize:15,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,transition:'all 0.2s',boxShadow:voiceState!=='idle'?'0 0 12px rgba(0,229,255,0.15)':'none'}}>
-                {voiceState === 'idle' ? '🎙' : voiceState === 'speaking' ? '⏹' : '●'}
-              </button>
-              <button className="send-btn" onClick={() => sendMessage()} disabled={loading || voiceState !== 'idle'} style={{width:32,height:32,borderRadius:8,border:'none',background:'linear-gradient(135deg,#4d9fff,#00e5ff)',color:'#000',cursor:'pointer',fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:16,opacity:(loading||voiceState!=='idle')?0.4:1,transition:'all 0.2s'}}>↑</button>
+              <button
+                onClick={toggleVoice}
+                disabled={voiceState === 'thinking'}
+                style={{
+                  width:32,height:32,borderRadius:8,
+                  border:`1px solid ${voiceState==='listening'?'rgba(239,68,68,0.5)':voiceState!=='idle'?'rgba(0,229,255,0.35)':'rgba(77,159,255,0.12)'}`,
+                  background:voiceState==='listening'?'rgba(239,68,68,0.1)':voiceState!=='idle'?'rgba(0,229,255,0.06)':'transparent',
+                  color:voiceState==='listening'?'#ef4444':voiceState!=='idle'?'#00e5ff':'#3a4d6a',
+                  cursor:voiceState==='thinking'?'not-allowed':'pointer',
+                  fontSize:15,display:'flex',alignItems:'center',justifyContent:'center',
+                  flexShrink:0,transition:'all 0.2s',
+                  animation:voiceState==='listening'?'glow 1s ease-in-out infinite':'none',
+                }}
+              >{voiceIcon[voiceState]}</button>
+              <button
+                className="send-btn"
+                onClick={() => sendMessage()}
+                disabled={loading || voiceState !== 'idle'}
+                style={{width:32,height:32,borderRadius:8,border:'none',background:'linear-gradient(135deg,#4d9fff,#00e5ff)',color:'#000',cursor:'pointer',fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:16,opacity:(loading||voiceState!=='idle')?0.4:1,transition:'all 0.2s'}}
+              >↑</button>
             </div>
-            <div style={{fontFamily:'JetBrains Mono,monospace',fontSize:8,color:'#1e2a3a',textAlign:'center',marginTop:7,letterSpacing:'0.06em'}}>Enter kirim · Shift+Enter baris baru · 🎙 bicara langsung ke ZANITH</div>
+            <div style={{fontFamily:'JetBrains Mono,monospace',fontSize:8,color:'#1e2a3a',textAlign:'center',marginTop:7,letterSpacing:'0.06em'}}>
+              Enter kirim · 🎙 tap untuk record · tap lagi untuk stop & kirim
+            </div>
           </div>
         </div>
       </div>
