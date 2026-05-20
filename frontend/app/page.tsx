@@ -74,9 +74,9 @@ export default function Home() {
         },
         positiveSpeechThreshold: 0.8,
         negativeSpeechThreshold: 0.8,
-        minSpeechFrames: 3,
-        preSpeechPadFrames: 10,
-        redemptionFrames: 8,
+        minSpeechMs: 100,
+        preSpeechPadMs: 300,
+        redemptionMs: 400,
       })
       vadRef.current = vad
       vad.start()
@@ -256,7 +256,7 @@ export default function Home() {
 
               {response && (
                 <div style={{maxWidth:360,margin:'0 auto',padding:'14px 18px',background:'rgba(77,123,255,0.05)',border:'1px solid rgba(77,123,255,0.1)',borderRadius:14,animation:'fadeIn 0.3s ease'}}>
-                  <div style={{fontSize:13,color:'rgba(220,232,255,0.8)',lineHeight:1.7,fontFamily:'JetBrains Mono,monospace',fontSize:11,letterSpacing:'0.02em'}}>{response}</div>
+                  <div style={{color:'rgba(220,232,255,0.8)',lineHeight:1.7,fontFamily:'JetBrains Mono,monospace',fontSize:11,letterSpacing:'0.02em'}}>{response}</div>
                 </div>
               )}
             </div>
