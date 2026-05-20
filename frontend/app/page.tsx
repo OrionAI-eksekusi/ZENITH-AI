@@ -93,15 +93,15 @@ export default function Home() {
       if (data.status!=='success'||!data.transcript?.trim()){updateState('listening');return}
       setTranscript(data.transcript)
       setResponse(data.response)
-      if (data.audio_b64) {
-        updateState('speaking')
-        const audio = new Audio(`data:audio/mp3;base64,${data.audio_b64}`)
-        audioRef.current = audio
-        audio.onended = ()=>{setTranscript('');setResponse('');updateState('listening')}
-        await audio.play().catch(()=>updateState('listening'))
-      } else {
-        updateState('listening')
-      }
+      // Browser TTS
+      updateState('speaking')
+      const utterance = new SpeechSynthesisUtterance(data.response)
+      utterance.lang = 'id-ID'
+      utterance.rate = 0.9
+      utterance.onend = () => { setTranscript(''); setResponse(''); if(activeRef.current) restartRecording() }
+      utterance.onerror = () => { if(activeRef.current) restartRecording() }
+      window.speechSynthesis.cancel()
+      window.speechSynthesis.speak(utterance)
     } catch(e){console.error(e);updateState('listening')}
   }
 
