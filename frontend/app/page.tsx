@@ -120,6 +120,10 @@ export default function Home() {
   }
 
   const toggleActive = async () => {
+    // Resume AudioContext untuk Safari
+    if (contextRef.current && contextRef.current.state === 'suspended') {
+      await contextRef.current.resume()
+    }
     if (active) {
       stopRecording();audioRef.current?.pause()
       setActive(false);activeRef.current=false
