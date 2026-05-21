@@ -12,7 +12,7 @@ def get_client():
     return ElevenLabs(api_key=key)
 
 def get_voice_id():
-    return os.getenv("ELEVENLABS_VOICE_ID", "pNInz6obpgDQGcFmaJgB")
+    return os.getenv("ELEVENLABS_VOICE_ID", "I7sakys8pBZ1Z5f0UhT9")
 
 async def speech_to_text(audio_bytes: bytes, content_type: str = "audio/wav") -> str:
     key = os.getenv("ELEVENLABS_API_KEY", "")
