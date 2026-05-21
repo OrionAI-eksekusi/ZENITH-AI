@@ -10,9 +10,6 @@ CLAUDE_MODEL   = os.getenv("CLAUDE_MODEL", "claude-sonnet-4-5")
 # Database
 DATABASE_URL = os.getenv("DATABASE_URL", "")
 
-# Google
-GOOGLE_CLIENT_ID     = os.getenv("GOOGLE_CLIENT_ID", "")
-GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
 
 # App
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
