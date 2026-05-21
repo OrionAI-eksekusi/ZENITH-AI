@@ -97,10 +97,25 @@ export default function Home() {
       updateState('speaking')
       // ElevenLabs TTS handled below
 
-      // Play ElevenLabs audio if available
+      // Play ElevenLabs audio via AudioContext (Safari compatible)
       if (data.audio_b64) {
-        const audio = new Audio(`data:audio/mp3;base64,${data.audio_b64}`)
-        audio.play().catch(()=>{})
+        updateState('speaking')
+        try {
+          const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)()
+          const raw = atob(data.audio_b64)
+          const buf = new Uint8Array(raw.length)
+          for(let i=0;i<raw.length;i++) buf[i]=raw.charCodeAt(i)
+          audioCtx.decodeAudioData(buf.buffer, (decoded) => {
+            const src = audioCtx.createBufferSource()
+            src.buffer = decoded
+            src.connect(audioCtx.destination)
+            src.onended = () => { setTranscript(''); setResponse(''); updateState('listening'); if(activeRef.current) startRecording() }
+            src.start(0)
+          }, () => { updateState('listening'); if(activeRef.current) startRecording() })
+        } catch(e) { updateState('listening'); if(activeRef.current) startRecording() }
+      } else {
+        updateState('listening')
+        if(activeRef.current) startRecording()
       }
     } catch(e){console.error(e);updateState('listening')}
   }
