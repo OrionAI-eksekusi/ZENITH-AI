@@ -102,6 +102,12 @@ export default function Home() {
       utterance.onerror = () => { if(activeRef.current) startRecording() }
       window.speechSynthesis.cancel()
       window.speechSynthesis.speak(utterance)
+
+      // Play ElevenLabs audio if available
+      if (data.audio_b64) {
+        const audio = new Audio(`data:audio/mp3;base64,${data.audio_b64}`)
+        audio.play().catch(()=>{})
+      }
     } catch(e){console.error(e);updateState('listening')}
   }
 
