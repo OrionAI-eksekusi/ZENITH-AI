@@ -95,13 +95,7 @@ export default function Home() {
       setResponse(data.response)
       // Browser TTS
       updateState('speaking')
-      const utterance = new SpeechSynthesisUtterance(data.response)
-      utterance.lang = 'id-ID'
-      utterance.rate = 0.9
-      utterance.onend = () => { setTranscript(''); setResponse(''); if(activeRef.current) startRecording() }
-      utterance.onerror = () => { if(activeRef.current) startRecording() }
-      window.speechSynthesis.cancel()
-      window.speechSynthesis.speak(utterance)
+      // ElevenLabs TTS handled below
 
       // Play ElevenLabs audio if available
       if (data.audio_b64) {
