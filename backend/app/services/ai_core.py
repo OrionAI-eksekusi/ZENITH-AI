@@ -1,12 +1,12 @@
 """
 ZANITH AI — AI Core
-Claude integration dengan streaming + memory context
+Claude integration dengan web search
 """
 import os
 import anthropic
-from app.core.config import CLAUDE_API_KEY, CLAUDE_MODEL
 
-client = anthropic.Anthropic(api_key=CLAUDE_API_KEY)
+CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY", "")
+CLAUDE_MODEL = os.getenv("CLAUDE_MODEL", "claude-sonnet-4-5")
 
 ZANITH_SYSTEM = """Kamu adalah ZANITH — AI asisten pribadi yang sangat cerdas, elegan, dan powerful.
 
@@ -18,58 +18,98 @@ IDENTITAS:
 - Panggilan: Selalu panggil user dengan "Bos"
 
 KEMAMPUAN:
-- Mengingat konteks percakapan sebelumnya
-- Membaca email dan kalender user
-- Melakukan riset web
-- Menjalankan task otomatis
-- Memberikan insight strategis
+- Mengingat konteks percakapan
+- Mencari informasi terbaru di internet (jika tersedia hasil pencarian)
+- Membantu workflow, email, kalender
+- Memberikan insight dan rekomendasi
 
 ATURAN:
-- Jangan bertele-tele
-- Selalu actionable
-- Jawab seperti assistant premium, bukan chatbot biasa
-- Kalau tidak tahu, jujur bilang tidak tahu
-- Gunakan memory user untuk personalisasi jawaban"""
+- Jawab singkat dan padat kecuali diminta detail
+- Selalu panggil user "Bos"
+- Jika ada hasil pencarian web, gunakan untuk jawab pertanyaan
+- Jangan sebut "berdasarkan hasil pencarian" — langsung jawab natural
+- Format bold untuk poin penting
+"""
 
+def get_client():
+    return anthropic.Anthropic(api_key=CLAUDE_API_KEY)
 
-async def chat(message: str, memory_context: str = "", history: list = []) -> str:
-    """Chat dengan ZANITH — single response"""
+SEARCH_KEYWORDS = [
+    "cari", "search", "berita", "terbaru", "update", "info", "apa itu",
+    "siapa", "kapan", "dimana", "berapa harga", "cuaca", "stock", "crypto",
+    "bitcoin", "trending", "viral", "sekarang", "hari ini", "kemarin",
+    "minggu ini", "bulan ini", "tahun ini", "terkini", "latest"
+]
+
+def needs_search(message: str) -> bool:
+    msg_lower = message.lower()
+    return any(kw in msg_lower for kw in SEARCH_KEYWORDS)
+
+async def chat(message: str, memory_context: str = "", history: list = [], user_id: str = "") -> str:
     try:
+        client = get_client()
+        
+        # Web search jika diperlukan
+        search_context = ""
+        if needs_search(message):
+            from app.tools.web_search import search_web
+            search_context = await search_web(message)
+        
+        # Build system prompt
         system = ZANITH_SYSTEM
         if memory_context:
-            system += f"\n\nMEMORY USER:\n{memory_context}"
-
-        messages = history[-10:] + [{"role": "user", "content": message}]
-
+            system += f"\n\n{memory_context}"
+        if search_context:
+            system += f"\n\n{search_context}"
+        
+        # Build messages
+        messages = []
+        if history:
+            messages.extend(history[-10:])
+        messages.append({"role": "user", "content": message})
+        
         response = client.messages.create(
             model=CLAUDE_MODEL,
-            max_tokens=1024,
+            max_tokens=1000,
             system=system,
             messages=messages
         )
+        
         return response.content[0].text
+        
     except Exception as e:
         print(f"[ZANITH AI ERROR] {e}")
-        return "Maaf, saya mengalami gangguan. Coba lagi ya."
-
+        return "Maaf Bos, saya sedang ada gangguan. Coba lagi ya."
 
 async def chat_stream(message: str, memory_context: str = "", history: list = []):
-    """Chat dengan ZANITH — streaming response"""
     try:
+        client = get_client()
+        
+        search_context = ""
+        if needs_search(message):
+            from app.tools.web_search import search_web
+            search_context = await search_web(message)
+        
         system = ZANITH_SYSTEM
         if memory_context:
-            system += f"\n\nMEMORY USER:\n{memory_context}"
-
-        messages = history[-10:] + [{"role": "user", "content": message}]
-
+            system += f"\n\n{memory_context}"
+        if search_context:
+            system += f"\n\n{search_context}"
+        
+        messages = []
+        if history:
+            messages.extend(history[-10:])
+        messages.append({"role": "user", "content": message})
+        
         with client.messages.stream(
             model=CLAUDE_MODEL,
-            max_tokens=1024,
+            max_tokens=1000,
             system=system,
             messages=messages
         ) as stream:
             for text in stream.text_stream:
                 yield text
+                
     except Exception as e:
         print(f"[ZANITH STREAM ERROR] {e}")
-        yield "Maaf, saya mengalami gangguan."
+        yield "Maaf Bos, ada gangguan."
