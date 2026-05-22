@@ -29,7 +29,7 @@ async def chat_endpoint(request: Request):
     history    = await get_history(user_id)
 
     # Chat
-    response = await chat(message, memory_ctx, history)
+    response = await chat(message, memory_ctx, history, user_id)
 
     # Simpan ke history + auto extract memory
     await save_conversation(user_id, "user", message)
