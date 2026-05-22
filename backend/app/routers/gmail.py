@@ -17,8 +17,31 @@ BACKEND_URL = os.getenv("BACKEND_URL", "https://zenith-ai-production-c5d7.up.rai
 
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
 
-# Simpan tokens sementara (in-memory)
-user_tokens = {}
+from app.core.database import get_conn
+import json as json_lib
+
+def _save_token(user_id: str, token_data: dict):
+    conn = get_conn()
+    try:
+        c = conn.cursor()
+        c.execute("""
+            INSERT INTO zanith_memory (user_id, key, value, category, updated_at)
+            VALUES (%s, 'gmail_token', %s, 'auth', NOW())
+            ON CONFLICT (user_id, key) DO UPDATE SET value = excluded.value, updated_at = NOW()
+        """, (user_id, json_lib.dumps(token_data)))
+        conn.commit()
+    finally:
+        conn.close()
+
+def _get_token(user_id: str) -> dict:
+    conn = get_conn()
+    try:
+        c = conn.cursor()
+        c.execute("SELECT value FROM zanith_memory WHERE user_id = %s AND key = 'gmail_token'", (user_id,))
+        row = c.fetchone()
+        return json_lib.loads(row['value']) if row else None
+    finally:
+        conn.close()
 
 def get_flow():
     return Flow.from_client_config(
@@ -53,13 +76,13 @@ async def gmail_callback(code: str, state: str):
         flow = get_flow()
         flow.fetch_token(code=code)
         creds = flow.credentials
-        user_tokens[state] = {
+        _save_token(state, {
             "token": creds.token,
             "refresh_token": creds.refresh_token,
             "token_uri": creds.token_uri,
             "client_id": creds.client_id,
             "client_secret": creds.client_secret,
-        }
+        })
         return JSONResponse({"status": "success", "message": "Gmail connected!"})
     except Exception as e:
         return JSONResponse({"status": "error", "message": str(e)})
@@ -67,11 +90,11 @@ async def gmail_callback(code: str, state: str):
 @router.get("/emails/{user_id}")
 async def get_emails(user_id: str, max_results: int = 5):
     """Get latest emails"""
-    if user_id not in user_tokens:
+    creds_data = _get_token(user_id)
+    if not creds_data:
         return JSONResponse({"status": "error", "message": "Gmail belum terhubung", "auth_url": f"/gmail/auth/{user_id}"})
     
     try:
-        creds_data = user_tokens[user_id]
         creds = Credentials(
             token=creds_data["token"],
             refresh_token=creds_data["refresh_token"],
@@ -109,10 +132,10 @@ async def get_emails(user_id: str, max_results: int = 5):
 
 async def get_emails_data(user_id: str, max_results: int = 5) -> list:
     """Get emails as list for AI context"""
-    if user_id not in user_tokens:
+    creds_data = _get_token(user_id)
+    if not creds_data:
         return []
     try:
-        creds_data = user_tokens[user_id]
         creds = Credentials(
             token=creds_data["token"],
             refresh_token=creds_data["refresh_token"],
