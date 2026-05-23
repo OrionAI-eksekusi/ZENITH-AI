@@ -378,7 +378,7 @@ export default function Home() {
           <div style={{textAlign:'center',maxWidth:480,minHeight:80,padding:'0 20px'}}>
             {!active && (
               <div style={{animation:'fadeIn 0.3s ease'}}>
-                <div style={{fontSize:11,color:'rgba(77,123,255,0.4)',letterSpacing:'0.2em',marginBottom:6'}}>TAP UNTUK AKTIVASI</div>
+                <div style={{fontSize:11,color:'rgba(77,123,255,0.4)',letterSpacing:'0.2em',marginBottom:'6px'}}>TAP UNTUK AKTIVASI</div>
                 <div style={{fontSize:9,color:'rgba(77,123,255,0.2)',letterSpacing:'0.12em'}}>ZANITH SIAP MELAYANI</div>
               </div>
             )}
