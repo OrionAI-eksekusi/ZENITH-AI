@@ -1,12 +1,39 @@
 'use client'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8002'
-const USER_ID = 'azvicky'
+
+function getUserId(): string {
+  if (typeof window === 'undefined') return 'guest'
+  try {
+    const user = JSON.parse(localStorage.getItem('zanith_user') || '{}')
+    return user.user_id || 'guest'
+  } catch {
+    return 'guest'
+  }
+}
 type State = 'idle' | 'listening' | 'thinking' | 'speaking'
 
 export default function Home() {
   const [state, setState] = useState<State>('idle')
+  const [userName, setUserName] = useState('')
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const user = JSON.parse(localStorage.getItem('zanith_user') || '{}')
+      if (!user.user_id) {
+        window.location.href = '/login'
+        return
+      }
+      setUserName(user.name || 'Bos')
+    }
+  }, [])
+
+  const logout = () => {
+    localStorage.removeItem('zanith_token')
+    localStorage.removeItem('zanith_user')
+    window.location.href = '/login'
+  }
   const [active, setActive] = useState(false)
   const [transcript, setTranscript] = useState('')
   const [response, setResponse] = useState('')
@@ -87,7 +114,7 @@ export default function Home() {
       const blob = new Blob([wav],{type:'audio/wav'})
       const form = new FormData()
       form.append('audio',blob,'audio.wav')
-      form.append('user_id',USER_ID)
+      form.append('user_id', getUserId())
       const res = await fetch(`${BACKEND}/voice/transcribe`,{method:'POST',body:form})
       const data = await res.json()
       if (data.status!=='success'||!data.transcript?.trim()){updateState('listening');return}
@@ -163,7 +190,13 @@ export default function Home() {
         @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
       `}</style>
       <div style={{width:'100vw',height:'100vh',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:'#06090f',position:'relative',overflow:'hidden',userSelect:'none'}}>
-        <div style={{position:'absolute',top:32,fontFamily:'JetBrains Mono,monospace',fontSize:11,fontWeight:500,letterSpacing:'0.35em',background:'linear-gradient(90deg,#4c7bff,#8b5cf6,#4c7bff)',backgroundSize:'200%',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',animation:'shimmer 4s linear infinite'}}>ZANITH</div>
+        <div style={{position:'absolute',top:32,left:0,right:0,display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 24px'}}>
+          <div style={{fontFamily:'JetBrains Mono,monospace',fontSize:11,fontWeight:500,letterSpacing:'0.35em',background:'linear-gradient(90deg,#4c7bff,#8b5cf6,#4c7bff)',backgroundSize:'200%',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',animation:'shimmer 4s linear infinite'}}>ZANITH</div>
+          <div style={{display:'flex',alignItems:'center',gap:12}}>
+            <span style={{fontFamily:'JetBrains Mono,monospace',fontSize:9,color:'rgba(77,123,255,0.4)',letterSpacing:'0.1em'}}>{userName}</span>
+            <button onClick={logout} style={{fontFamily:'JetBrains Mono,monospace',fontSize:9,color:'rgba(77,123,255,0.3)',letterSpacing:'0.1em',background:'none',border:'1px solid rgba(77,123,255,0.1)',borderRadius:4,padding:'3px 8px',cursor:'pointer'}}>KELUAR</button>
+          </div>
+        </div>
         <div style={{position:'relative',width:280,height:280,display:'flex',alignItems:'center',justifyContent:'center'}}>
           {state==='listening'&&[0,0.5,1].map((d,i)=>(<div key={i} style={{position:'absolute',width:240,height:240,borderRadius:'50%',border:'1px solid rgba(77,123,255,0.3)',animation:`ripple 2.5s ease-out ${d}s infinite`}}/>))}
           {state==='thinking'&&<div style={{position:'absolute',width:260,height:260,borderRadius:'50%',border:'1px solid transparent',borderTop:'1px solid rgba(139,92,246,0.6)',animation:'spin 1s linear infinite'}}/>}
