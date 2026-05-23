@@ -171,6 +171,11 @@ export default function Home() {
     }
     setSidebarOpen(false)
     updateState('thinking')
+    // Resume AudioContext untuk Safari
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)()
+      if (ctx.state === 'suspended') await ctx.resume()
+    } catch {}
     setTranscript(message)
     try {
       const res = await fetch(`${BACKEND}/chat/`, {
