@@ -74,6 +74,15 @@ async def register(request: Request):
     if "error" in result:
         return JSONResponse({"status": "error", "message": result["error"]})
     token = create_token(result["user_id"], result["email"])
+    
+    # Auto simpan nama ke memory ZANITH
+    try:
+        from app.memory.memory_engine import save_memory
+        import asyncio
+        asyncio.create_task(save_memory(result["user_id"], "nama", result["name"], "identity"))
+    except:
+        pass
+    
     return JSONResponse({"status": "success", "token": token, "user": result})
 
 @router.post("/login")
@@ -87,6 +96,15 @@ async def login(request: Request):
     if "error" in result:
         return JSONResponse({"status": "error", "message": result["error"]})
     token = create_token(result["user_id"], result["email"])
+    
+    # Auto simpan nama ke memory ZANITH
+    try:
+        from app.memory.memory_engine import save_memory
+        import asyncio
+        asyncio.create_task(save_memory(result["user_id"], "nama", result["name"], "identity"))
+    except:
+        pass
+    
     return JSONResponse({"status": "success", "token": token, "user": result})
 
 @router.get("/me")
