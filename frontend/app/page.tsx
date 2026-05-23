@@ -164,6 +164,55 @@ export default function Home() {
     } else { setActive(true); activeRef.current = true; await startRecording() }
   }
 
+  const sendTextMessage = async (message: string) => {
+    if (!active) {
+      setActive(true)
+      activeRef.current = true
+    }
+    setSidebarOpen(false)
+    updateState('thinking')
+    setTranscript(message)
+    try {
+      const res = await fetch(`${BACKEND}/chat/`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({user_id: getUserId(), message})
+      })
+      const data = await res.json()
+      setResponse(data.response)
+      if (data.response) {
+        const ttsRes = await fetch(`${BACKEND}/voice/tts`, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({text: data.response})
+        })
+        const ttsData = await ttsRes.json()
+        if (ttsData.audio_b64) {
+          updateState('speaking')
+          const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)()
+          const raw = atob(ttsData.audio_b64)
+          const buf = new Uint8Array(raw.length)
+          for(let i=0;i<raw.length;i++) buf[i]=raw.charCodeAt(i)
+          audioCtx.decodeAudioData(buf.buffer, (decoded) => {
+            const src = audioCtx.createBufferSource()
+            src.buffer = decoded
+            src.connect(audioCtx.destination)
+            src.onended = () => {
+              setTranscript('')
+              setResponse('')
+              updateState('listening')
+              if(activeRef.current) startRecording()
+            }
+            src.start(0)
+          }, () => { updateState('listening'); if(activeRef.current) startRecording() })
+        } else {
+          updateState('listening')
+          if(activeRef.current) startRecording()
+        }
+      }
+    } catch {
+      updateState('idle')
+    }
+  }
+
   const logout = () => { localStorage.removeItem('zanith_token'); localStorage.removeItem('zanith_user'); window.location.href = '/login' }
 
   const getGreeting = () => {
@@ -218,12 +267,12 @@ export default function Home() {
             <div style={{marginBottom:28}}>
               <div style={{fontSize:8,color:'rgba(255,255,255,0.25)',letterSpacing:'0.15em',marginBottom:12}}>AKSI CEPAT</div>
               {[
-                {icon:'📧', label:'Cek Email'},
-                {icon:'🔍', label:'Web Search'},
-                {icon:'📋', label:'Buat Catatan'},
-                {icon:'📅', label:'Jadwal Hari Ini'},
+                {icon:'📧', label:'Cek Email', msg:'ada email penting hari ini?'},
+                {icon:'🔍', label:'Web Search', msg:'cari berita AI terbaru hari ini'},
+                {icon:'📋', label:'Buat Catatan', msg:'bantu saya buat catatan penting'},
+                {icon:'📅', label:'Jadwal Hari Ini', msg:'apa yang perlu saya kerjakan hari ini?'},
               ].map((a,i) => (
-                <div key={i} onClick={()=>setSidebarOpen(false)} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 10px',borderRadius:8,marginBottom:4,cursor:'pointer',border:'1px solid transparent',transition:'all 0.2s',color:'rgba(255,255,255,0.5)'}}
+                <div key={i} onClick={()=>sendTextMessage(a.msg)} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 10px',borderRadius:8,marginBottom:4,cursor:'pointer',border:'1px solid transparent',transition:'all 0.2s',color:'rgba(255,255,255,0.5)'}}
                   onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.borderColor='rgba(255,255,255,0.08)';(e.currentTarget as HTMLElement).style.background='rgba(255,255,255,0.03)'}}
                   onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.borderColor='transparent';(e.currentTarget as HTMLElement).style.background='transparent'}}
                 >
