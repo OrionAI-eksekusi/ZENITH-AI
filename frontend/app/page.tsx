@@ -182,18 +182,8 @@ export default function Home() {
   }
 
   const sendTextMessage = async (message: string) => {
-    await unlockAudio()
-    if (!active) {
-      setActive(true)
-      activeRef.current = true
-    }
     setSidebarOpen(false)
     updateState('thinking')
-    // Resume AudioContext untuk Safari
-    try {
-      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)()
-      if (ctx.state === 'suspended') await ctx.resume()
-    } catch {}
     setTranscript(message)
     try {
       const res = await fetch(`${BACKEND}/chat/`, {
@@ -202,30 +192,7 @@ export default function Home() {
       })
       const data = await res.json()
       setResponse(data.response)
-      if (data.response) {
-        const ttsRes = await fetch(`${BACKEND}/voice/tts`, {
-          method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({text: data.response})
-        })
-        const ttsData = await ttsRes.json()
-        if (ttsData.audio_b64) {
-          updateState('speaking')
-          const audio = new Audio(`data:audio/mp3;base64,${ttsData.audio_b64}`)
-          audio.onended = () => {
-            setTranscript('')
-            setResponse('')
-            updateState('listening')
-            if(activeRef.current) startRecording()
-          }
-          audio.play().catch(() => {
-            updateState('listening')
-            if(activeRef.current) startRecording()
-          })
-        } else {
-          updateState('listening')
-          if(activeRef.current) startRecording()
-        }
-      }
+      updateState('idle')
     } catch {
       updateState('idle')
     }
