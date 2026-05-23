@@ -23,6 +23,7 @@ export default function Home() {
   const [userName, setUserName] = useState('Bos')
   const [time, setTime] = useState('')
   const [waveform, setWaveform] = useState<number[]>(Array(20).fill(2))
+  const [errorMsg, setErrorMsg] = useState('')
 
   const stateRef = useRef<State>('idle')
   const activeRef = useRef(false)
@@ -36,6 +37,11 @@ export default function Home() {
   const waveAnimRef = useRef<any>(null)
 
   const updateState = (s: State) => { setState(s); stateRef.current = s }
+  
+  const showError = (msg: string) => {
+    setErrorMsg(msg)
+    setTimeout(() => setErrorMsg(''), 4000)
+  }
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -95,7 +101,7 @@ export default function Home() {
       processor.connect(ctx.destination)
       animateWaveform(analyser)
       updateState('listening')
-    } catch { alert('Izinkan akses microphone') }
+    } catch { showError('Izinkan akses microphone di browser kamu') }
   }
 
   const stopAndProcess = async () => {
@@ -138,7 +144,7 @@ export default function Home() {
           src.start(0)
         }, () => { updateState('listening'); if(activeRef.current) startRecording() })
       } else { updateState('listening'); if(activeRef.current) startRecording() }
-    } catch { updateState('listening'); if(activeRef.current) startRecording() }
+    } catch { showError('Koneksi bermasalah, coba lagi'); updateState('listening'); if(activeRef.current) startRecording() }
   }
 
   const encodeWav = (samples: Float32Array, rate: number): ArrayBuffer => {
@@ -194,6 +200,7 @@ export default function Home() {
       setResponse(data.response)
       updateState('idle')
     } catch {
+      showError('Koneksi bermasalah, coba lagi')
       updateState('idle')
     }
   }
@@ -403,6 +410,13 @@ export default function Home() {
               </div>
             )}
           </div>
+
+          {/* Error notification */}
+          {errorMsg && (
+            <div style={{position:'absolute',bottom:90,left:'50%',transform:'translateX(-50%)',background:'rgba(239,68,68,0.08)',border:'1px solid rgba(239,68,68,0.2)',borderRadius:8,padding:'10px 18px',fontSize:9,color:'rgba(239,68,68,0.8)',letterSpacing:'0.1em',animation:'fadeIn 0.3s ease',whiteSpace:'nowrap'}}>
+              ⚠ {errorMsg}
+            </div>
+          )}
         </div>
 
         {/* BOTTOM */}
