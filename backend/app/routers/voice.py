@@ -20,6 +20,17 @@ async def transcribe_audio(audio: UploadFile = File(...), user_id: str = Form(de
     4. Return teks + audio TTS
     """
     try:
+        # Check limit
+        from app.core.limits import check_and_increment
+        limit_check = check_and_increment(user_id)
+        if not limit_check.get("allowed"):
+            return JSONResponse({
+                "status": "limit",
+                "response": limit_check.get("message", "Limit tercapai"),
+                "transcript": "",
+                "audio_b64": None
+            })
+        
         audio_bytes = await audio.read()
         # STT
         transcript = await speech_to_text(audio_bytes, audio.content_type or "audio/webm")

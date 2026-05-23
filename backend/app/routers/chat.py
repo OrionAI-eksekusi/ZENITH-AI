@@ -20,6 +20,16 @@ async def chat_endpoint(request: Request):
     data = await request.json()
     user_id = data.get("user_id", "default")
     message = data.get("message", "")
+    
+    # Skip limit check untuk internal messages
+    if not message.startswith("__"):
+        limit_check = check_and_increment(user_id)
+        if not limit_check.get("allowed"):
+            return JSONResponse({
+                "status": "limit",
+                "response": limit_check.get("message", "Limit tercapai"),
+                "reason": limit_check.get("reason")
+            })
 
     if not message:
         return JSONResponse({"status": "error", "message": "Pesan kosong"})
@@ -49,6 +59,16 @@ async def chat_stream_endpoint(request: Request):
     data    = await request.json()
     user_id = data.get("user_id", "default")
     message = data.get("message", "")
+    
+    # Skip limit check untuk internal messages
+    if not message.startswith("__"):
+        limit_check = check_and_increment(user_id)
+        if not limit_check.get("allowed"):
+            return JSONResponse({
+                "status": "limit",
+                "response": limit_check.get("message", "Limit tercapai"),
+                "reason": limit_check.get("reason")
+            })
 
     memory_ctx = await get_memory_context(user_id)
     history    = await get_history(user_id)
