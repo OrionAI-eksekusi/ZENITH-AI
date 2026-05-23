@@ -99,3 +99,17 @@ async def me(request: Request):
         return JSONResponse({"status": "success", "user": payload})
     except Exception:
         return JSONResponse({"status": "error", "message": "Token invalid"})
+
+@router.get("/google/{redirect_after}")
+async def google_login(redirect_after: str = "app"):
+    """Redirect ke Google OAuth — login + Gmail sekaligus"""
+    from app.routers.gmail import get_flow
+    flow = get_flow()
+    auth_url, state = flow.authorization_url(
+        access_type="offline",
+        include_granted_scopes="true",
+        prompt="consent",
+        state=f"google_login_{redirect_after}"
+    )
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(auth_url)
