@@ -205,21 +205,10 @@ export default function Home() {
               <button onClick={()=>setSidebarOpen(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,0.3)',cursor:'pointer',fontSize:16}}>✕</button>
             </div>
 
-            {/* Status */}
-            <div style={{marginBottom:28}}>
-              <div style={{fontSize:8,color:'rgba(255,255,255,0.25)',letterSpacing:'0.15em',marginBottom:12}}>STATUS SISTEM</div>
-              {[
-                {label:'ZANITH CORE', color:'#00e5ff'},
-                {label:'CLAUDE AI', color:'#00e5ff'},
-                {label:'VOICE ENGINE', color:'#00e5ff'},
-                {label:'MEMORY', color:'#00e5ff'},
-                {label:'WEB SEARCH', color:'#00e5ff'},
-                {label:'GMAIL', color:'#00e5ff'},
-              ].map((s,i) => (
-                <div key={i} style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:10}}>
-                  <span style={{fontSize:9,color:'rgba(255,255,255,0.4)',letterSpacing:'0.08em'}}>{s.label}</span>
-                  <div style={{width:5,height:5,borderRadius:'50%',background:s.color,boxShadow:`0 0 6px ${s.color}`}}/>
-                </div>
+            {/* Status dots only */}
+            <div style={{display:'flex',gap:6,marginBottom:28}}>
+              {['#00e5ff','#00e5ff','#00e5ff','#00e5ff','#00e5ff','#00e5ff'].map((c,i)=>(
+                <div key={i} style={{width:5,height:5,borderRadius:'50%',background:c,boxShadow:`0 0 6px ${c}`}}/>
               ))}
             </div>
 
@@ -246,15 +235,8 @@ export default function Home() {
 
             <div style={{height:1,background:'rgba(255,255,255,0.05)',marginBottom:24}}/>
 
-            {/* Session */}
-            <div style={{marginBottom:28}}>
-              <div style={{fontSize:8,color:'rgba(255,255,255,0.25)',letterSpacing:'0.15em',marginBottom:12}}>SESI</div>
-              <div style={{fontSize:9,color:'rgba(255,255,255,0.35)',lineHeight:2.2,letterSpacing:'0.06em'}}>
-                <div>USER · {userName.toUpperCase()}</div>
-                <div>MODEL · CLAUDE SONNET</div>
-                <div>VOICE · ELEVENLABS</div>
-                <div>MEM · AKTIF</div>
-              </div>
+            <div style={{marginBottom:28,fontSize:9,color:'rgba(255,255,255,0.25)',letterSpacing:'0.08em'}}>
+              {userName}
             </div>
 
             <button onClick={logout} style={{width:'100%',padding:'10px',background:'rgba(239,68,68,0.06)',border:'1px solid rgba(239,68,68,0.12)',borderRadius:8,color:'rgba(239,68,68,0.6)',fontFamily:'JetBrains Mono,monospace',fontSize:9,letterSpacing:'0.12em',cursor:'pointer'}}>
