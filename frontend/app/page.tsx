@@ -153,7 +153,24 @@ export default function Home() {
     return buf
   }
 
+  const audioUnlockRef = useRef(false)
+
+  const unlockAudio = async () => {
+    if (audioUnlockRef.current) return
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)()
+      const buf = ctx.createBuffer(1, 1, 22050)
+      const src = ctx.createBufferSource()
+      src.buffer = buf
+      src.connect(ctx.destination)
+      src.start(0)
+      await ctx.resume()
+      audioUnlockRef.current = true
+    } catch {}
+  }
+
   const toggleActive = async () => {
+    await unlockAudio()
     if (active) {
       recordingRef.current = false; activeRef.current = false
       cancelAnimationFrame(waveAnimRef.current)
@@ -165,6 +182,7 @@ export default function Home() {
   }
 
   const sendTextMessage = async (message: string) => {
+    await unlockAudio()
     if (!active) {
       setActive(true)
       activeRef.current = true
