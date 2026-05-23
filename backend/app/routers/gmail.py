@@ -65,6 +65,7 @@ async def gmail_auth(user_id: str):
     auth_url, state = flow.authorization_url(
         access_type="offline",
         include_granted_scopes="true",
+        prompt="consent",
         state=user_id
     )
     return RedirectResponse(auth_url)

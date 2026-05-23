@@ -17,6 +17,7 @@ type State = 'idle' | 'listening' | 'thinking' | 'speaking'
 export default function Home() {
   const [state, setState] = useState<State>('idle')
   const [userName, setUserName] = useState('')
+  const [gmailConnected, setGmailConnected] = useState(false)
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -26,6 +27,17 @@ export default function Home() {
         return
       }
       setUserName(user.name || 'Bos')
+      
+      // Check Gmail connection
+      fetch(`${BACKEND}/gmail/emails/${user.user_id}`)
+        .then(r => r.json())
+        .then(d => {
+          if (d.status === 'error' && d.auth_url) {
+            setGmailConnected(false)
+          } else {
+            setGmailConnected(true)
+          }
+        }).catch(() => {})
     }
   }, [])
 
