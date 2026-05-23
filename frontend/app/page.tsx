@@ -192,22 +192,17 @@ export default function Home() {
         const ttsData = await ttsRes.json()
         if (ttsData.audio_b64) {
           updateState('speaking')
-          const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)()
-          const raw = atob(ttsData.audio_b64)
-          const buf = new Uint8Array(raw.length)
-          for(let i=0;i<raw.length;i++) buf[i]=raw.charCodeAt(i)
-          audioCtx.decodeAudioData(buf.buffer, (decoded) => {
-            const src = audioCtx.createBufferSource()
-            src.buffer = decoded
-            src.connect(audioCtx.destination)
-            src.onended = () => {
-              setTranscript('')
-              setResponse('')
-              updateState('listening')
-              if(activeRef.current) startRecording()
-            }
-            src.start(0)
-          }, () => { updateState('listening'); if(activeRef.current) startRecording() })
+          const audio = new Audio(`data:audio/mp3;base64,${ttsData.audio_b64}`)
+          audio.onended = () => {
+            setTranscript('')
+            setResponse('')
+            updateState('listening')
+            if(activeRef.current) startRecording()
+          }
+          audio.play().catch(() => {
+            updateState('listening')
+            if(activeRef.current) startRecording()
+          })
         } else {
           updateState('listening')
           if(activeRef.current) startRecording()
