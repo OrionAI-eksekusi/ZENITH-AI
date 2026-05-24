@@ -48,7 +48,8 @@ export default function Home() {
     if (typeof window === 'undefined') return
     const user = JSON.parse(localStorage.getItem('zanith_user') || '{}')
     if (!user.user_id) { window.location.href = '/login'; return }
-    setUserName(user.name || 'Bos')
+    const fullName = user.name || 'Bos'
+    setUserName(fullName.split(' ')[0])
     
     // Load user plan info
     fetch(`${BACKEND}/auth/info/${user.user_id}`)
@@ -435,8 +436,8 @@ export default function Home() {
             )}
             {transcript&&<div style={{fontSize:11,color:'rgba(255,255,255,0.35)',marginBottom:10,animation:'fadeIn 0.2s ease',fontStyle:'italic'}}>"{transcript}"</div>}
             {response&&(
-              <div style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:14,padding:'14px 18px',animation:'fadeIn 0.3s ease'}}>
-                <div style={{fontSize:13,color:'rgba(255,255,255,0.8)',lineHeight:1.8,letterSpacing:'0.02em'}}>{response}</div>
+              <div style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:14,padding:'14px 18px',animation:'fadeIn 0.3s ease',maxHeight:200,overflowY:'auto'}}>
+                <div style={{fontSize:12,color:'rgba(255,255,255,0.8)',lineHeight:1.8,letterSpacing:'0.02em'}}>{response}</div>
               </div>
             )}
           </div>
