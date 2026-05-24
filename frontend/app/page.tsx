@@ -178,18 +178,23 @@ export default function Home() {
       setResponse(data.response)
       if (data.audio_b64) {
         updateState('speaking')
-        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)()
-        await audioCtx.resume()
-        const raw = atob(data.audio_b64)
-        const buf = new Uint8Array(raw.length)
-        for(let i=0;i<raw.length;i++) buf[i]=raw.charCodeAt(i)
-        audioCtx.decodeAudioData(buf.buffer, (decoded) => {
-          const src = audioCtx.createBufferSource()
-          src.buffer = decoded
-          src.connect(audioCtx.destination)
-          src.onended = () => { setTranscript(''); setResponse(''); updateState('listening'); if(activeRef.current) startRecording() }
-          src.start(0)
-        }, () => { updateState('listening'); if(activeRef.current) startRecording() })
+        try {
+          if (!audioCtxRef.current) {
+            audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)()
+          }
+          const audioCtx = audioCtxRef.current
+          if (audioCtx.state === 'suspended') await audioCtx.resume()
+          const raw = atob(data.audio_b64)
+          const buf = new Uint8Array(raw.length)
+          for(let i=0;i<raw.length;i++) buf[i]=raw.charCodeAt(i)
+          audioCtx.decodeAudioData(buf.buffer, (decoded) => {
+            const src = audioCtx.createBufferSource()
+            src.buffer = decoded
+            src.connect(audioCtx.destination)
+            src.onended = () => { setTranscript(''); setResponse(''); updateState('listening'); if(activeRef.current) startRecording() }
+            src.start(0)
+          }, () => { updateState('listening'); if(activeRef.current) startRecording() })
+        } catch { updateState('listening'); if(activeRef.current) startRecording() }
       } else { updateState('listening'); if(activeRef.current) startRecording() }
     } catch { showError('Koneksi bermasalah, coba lagi'); updateState('listening'); if(activeRef.current) startRecording() }
   }
@@ -207,17 +212,20 @@ export default function Home() {
   }
 
   const audioUnlockRef = useRef(false)
+  const audioCtxRef = useRef<any>(null)
 
   const unlockAudio = async () => {
-    if (audioUnlockRef.current) return
     try {
-      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)()
+      if (!audioCtxRef.current) {
+        audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)()
+      }
+      const ctx = audioCtxRef.current
+      if (ctx.state === 'suspended') await ctx.resume()
       const buf = ctx.createBuffer(1, 1, 22050)
       const src = ctx.createBufferSource()
       src.buffer = buf
       src.connect(ctx.destination)
       src.start(0)
-      await ctx.resume()
       audioUnlockRef.current = true
     } catch {}
   }
