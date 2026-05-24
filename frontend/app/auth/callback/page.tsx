@@ -14,8 +14,8 @@ function CallbackHandler() {
     const email = params.get('email')
 
     if (token && user_id) {
-      localStorage.setItem('zanith_token', token)
-      localStorage.setItem('zanith_user', JSON.stringify({user_id, name, email}))
+      localStorage.setItem('zenith_token', token)
+      localStorage.setItem('zenith_user', JSON.stringify({user_id, name, email}))
       router.push('/')
     } else {
       router.push('/login')

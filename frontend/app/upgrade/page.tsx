@@ -10,7 +10,7 @@ export default function Upgrade() {
     setLoading(true)
     // Nanti connect ke payment gateway
     setTimeout(() => {
-      alert('Payment gateway segera hadir! Hubungi admin@zanith.ai untuk early access.')
+      alert('Payment gateway segera hadir! Hubungi admin@zenith.ai untuk early access.')
       setLoading(false)
     }, 1000)
   }
@@ -31,7 +31,7 @@ export default function Upgrade() {
         
         {/* Header */}
         <div style={{textAlign:'center',marginBottom:48,animation:'fadeIn 0.4s ease'}}>
-          <div style={{fontSize:9,color:'rgba(77,123,255,0.4)',letterSpacing:'0.3em',marginBottom:12}}>ZANITH AI</div>
+          <div style={{fontSize:9,color:'rgba(77,123,255,0.4)',letterSpacing:'0.3em',marginBottom:12}}>ZENITH AI</div>
           <div style={{fontSize:22,fontWeight:600,color:'#fff',letterSpacing:'0.05em',marginBottom:8}}>Pilih Plan Kamu</div>
           <div style={{fontSize:10,color:'rgba(255,255,255,0.3)',letterSpacing:'0.1em'}}>Mulai gratis, upgrade kapan saja</div>
         </div>
@@ -100,7 +100,7 @@ export default function Upgrade() {
         </div>
 
         <button onClick={() => router.push('/')} style={{marginTop:32,background:'none',border:'none',color:'rgba(255,255,255,0.2)',fontFamily:'JetBrains Mono,monospace',fontSize:9,letterSpacing:'0.1em',cursor:'pointer'}}>
-          ← KEMBALI KE ZANITH
+          ← KEMBALI KE ZENITH
         </button>
       </div>
     </>

@@ -5,11 +5,11 @@ const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8002'
 
 function getUserId(): string {
   if (typeof window === 'undefined') return 'guest'
-  try { return JSON.parse(localStorage.getItem('zanith_user') || '{}').user_id || 'guest' } catch { return 'guest' }
+  try { return JSON.parse(localStorage.getItem('zenith_user') || '{}').user_id || 'guest' } catch { return 'guest' }
 }
 function getUserName(): string {
   if (typeof window === 'undefined') return 'Bos'
-  try { return JSON.parse(localStorage.getItem('zanith_user') || '{}').name || 'Bos' } catch { return 'Bos' }
+  try { return JSON.parse(localStorage.getItem('zenith_user') || '{}').name || 'Bos' } catch { return 'Bos' }
 }
 
 type State = 'idle' | 'listening' | 'thinking' | 'speaking'
@@ -46,7 +46,7 @@ export default function Home() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return
-    const user = JSON.parse(localStorage.getItem('zanith_user') || '{}')
+    const user = JSON.parse(localStorage.getItem('zenith_user') || '{}')
     if (!user.user_id) { window.location.href = '/login'; return }
     const fullName = user.name || 'Bos'
     setUserName(fullName.split(' ')[0])
@@ -221,7 +221,7 @@ export default function Home() {
     }
   }
 
-  const logout = () => { localStorage.removeItem('zanith_token'); localStorage.removeItem('zanith_user'); window.location.href = '/login' }
+  const logout = () => { localStorage.removeItem('zenith_token'); localStorage.removeItem('zenith_user'); window.location.href = '/login' }
 
   const getGreeting = () => {
     const h = new Date().getHours()
@@ -258,7 +258,7 @@ export default function Home() {
           <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)}/>
           <div className="sidebar">
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:32}}>
-              <span style={{fontFamily:'JetBrains Mono,monospace',fontSize:11,letterSpacing:'0.25em',color:'rgba(255,255,255,0.8)'}}>ZANITH</span>
+              <span style={{fontFamily:'JetBrains Mono,monospace',fontSize:11,letterSpacing:'0.25em',color:'rgba(255,255,255,0.8)'}}>ZENITH</span>
               <button onClick={()=>setSidebarOpen(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,0.3)',cursor:'pointer',fontSize:16}}>✕</button>
             </div>
 
@@ -353,7 +353,7 @@ export default function Home() {
                 <circle cx="100" cy="100" r="58" fill="#08101f"/>
                 <circle cx="78" cy="76" r="4" fill="#4c7bff" opacity="0.8"/>
               </svg>
-              <span style={{fontSize:12,fontWeight:600,letterSpacing:'0.28em',background:'linear-gradient(90deg,#fff,rgba(77,123,255,0.8),#fff)',backgroundSize:'200%',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',animation:'shimmer 5s linear infinite'}}>ZANITH</span>
+              <span style={{fontSize:12,fontWeight:600,letterSpacing:'0.28em',background:'linear-gradient(90deg,#fff,rgba(77,123,255,0.8),#fff)',backgroundSize:'200%',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',animation:'shimmer 5s linear infinite'}}>ZENITH</span>
             </div>
           </div>
 
@@ -431,7 +431,7 @@ export default function Home() {
             {!active && (
               <div style={{animation:'fadeIn 0.4s ease'}}>
                 <div style={{fontSize:11,color:'rgba(255,255,255,0.25)',letterSpacing:'0.2em',marginBottom:6}}>TAP UNTUK AKTIVASI</div>
-                <div style={{fontSize:9,color:'rgba(255,255,255,0.1)',letterSpacing:'0.15em'}}>ZANITH SIAP MELAYANI</div>
+                <div style={{fontSize:9,color:'rgba(255,255,255,0.1)',letterSpacing:'0.15em'}}>ZENITH SIAP MELAYANI</div>
               </div>
             )}
             {transcript&&<div style={{fontSize:11,color:'rgba(255,255,255,0.35)',marginBottom:10,animation:'fadeIn 0.2s ease',fontStyle:'italic'}}>"{transcript}"</div>}
@@ -461,7 +461,7 @@ export default function Home() {
             fontFamily:'JetBrains Mono,monospace',fontSize:10,letterSpacing:'0.18em',
             cursor:'pointer',transition:'all 0.2s'
           }}>
-            {active?'⏹  STOP':'▶  AKTIVASI ZANITH'}
+            {active?'⏹  STOP':'▶  AKTIVASI ZENITH'}
           </button>
           <span style={{fontSize:8,color:'rgba(255,255,255,0.1)',letterSpacing:'0.1em'}}>TAP ORB ATAU KLIK AKTIVASI</span>
         </div>

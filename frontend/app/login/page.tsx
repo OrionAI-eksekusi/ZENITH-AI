@@ -32,8 +32,8 @@ export default function Login() {
       })
       const data = await res.json()
       if (data.status === 'success') {
-        localStorage.setItem('zanith_token', data.token)
-        localStorage.setItem('zanith_user', JSON.stringify(data.user))
+        localStorage.setItem('zenith_token', data.token)
+        localStorage.setItem('zenith_user', JSON.stringify(data.user))
         router.push('/')
       } else {
         setError(data.message || 'Terjadi kesalahan')
@@ -88,7 +88,7 @@ export default function Login() {
                 <circle cx="78" cy="76" r="3.5" fill="rgba(255,255,255,0.8)"/>
               </svg>
             </div>
-            <div style={{fontSize:14,fontWeight:500,letterSpacing:'0.3em',background:'linear-gradient(90deg,#4c7bff,#8b5cf6,#4c7bff)',backgroundSize:'200%',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',animation:'shimmer 4s linear infinite'}}>ZANITH</div>
+            <div style={{fontSize:14,fontWeight:500,letterSpacing:'0.3em',background:'linear-gradient(90deg,#4c7bff,#8b5cf6,#4c7bff)',backgroundSize:'200%',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',animation:'shimmer 4s linear infinite'}}>ZENITH</div>
             <div style={{fontSize:9,color:'rgba(77,123,255,0.35)',letterSpacing:'0.18em',marginTop:5}}>AUTONOMOUS INTELLIGENCE OS</div>
           </div>
 
@@ -141,11 +141,11 @@ export default function Login() {
             {error&&<div style={{fontSize:10,color:'#ef4444',marginBottom:12,padding:'7px 10px',background:'rgba(239,68,68,0.05)',borderRadius:6,border:'1px solid rgba(239,68,68,0.1)'}}>{error}</div>}
 
             <button onClick={submit} disabled={loading} style={{width:'100%',padding:'11px 0',background:loading?'rgba(77,123,255,0.04)':'linear-gradient(135deg,rgba(77,123,255,0.12),rgba(139,92,246,0.12))',border:'1px solid rgba(77,123,255,0.15)',borderRadius:8,color:loading?'rgba(77,123,255,0.3)':'#4c7bff',fontFamily:'JetBrains Mono,monospace',fontSize:10,letterSpacing:'0.15em',cursor:loading?'not-allowed':'pointer',transition:'all 0.2s'}}>
-              {loading?'MEMPROSES...':mode==='login'?'MASUK KE ZANITH':'BUAT AKUN'}
+              {loading?'MEMPROSES...':mode==='login'?'MASUK KE ZENITH':'BUAT AKUN'}
             </button>
           </div>
 
-          <div style={{textAlign:'center',marginTop:14,fontSize:8,color:'rgba(77,123,255,0.15)',letterSpacing:'0.1em'}}>ZANITH AI · AUTONOMOUS INTELLIGENCE</div>
+          <div style={{textAlign:'center',marginTop:14,fontSize:8,color:'rgba(77,123,255,0.15)',letterSpacing:'0.1em'}}>ZENITH AI · AUTONOMOUS INTELLIGENCE</div>
         </div>
       </div>
     </>
