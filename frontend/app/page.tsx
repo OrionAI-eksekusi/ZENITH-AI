@@ -5,7 +5,12 @@ const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8002'
 
 function getUserId(): string {
   if (typeof window === 'undefined') return 'guest'
-  try { return JSON.parse(localStorage.getItem('zenith_user') || '{}').user_id || 'guest' } catch { return 'guest' }
+  try {
+    const raw = localStorage.getItem('zenith_user')
+    if (!raw) return 'guest'
+    const user = JSON.parse(raw)
+    return user.user_id ? String(user.user_id) : 'guest'
+  } catch { return 'guest' }
 }
 function getUserName(): string {
   if (typeof window === 'undefined') return 'Bos'
