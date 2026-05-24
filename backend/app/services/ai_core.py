@@ -71,6 +71,19 @@ async def chat(message: str, memory_context: str = "", history: list = [], user_
             from app.tools.web_search import search_web
             search_context = await search_web(message)
         
+        # Notes jika diperlukan
+        note_context = ""
+        note_keywords = ["catat", "catatan", "simpan", "ingat ini", "note", "tulis"]
+        if any(kw in msg_lower for kw in note_keywords) and user_id:
+            try:
+                from app.routers.notes import _save_note
+                # Extract konten catatan dari message
+                content_to_save = message
+                _save_note(user_id, "Catatan ZANITH", content_to_save)
+                note_context = "[CATATAN BERHASIL DISIMPAN KE DATABASE]"
+            except:
+                pass
+
         # Gmail jika diperlukan
         email_context = ""
         msg_lower = message.lower()
@@ -97,6 +110,8 @@ async def chat(message: str, memory_context: str = "", history: list = [], user_
             system += f"\n\n{search_context}"
         if email_context:
             system += f"\n\n{email_context}"
+        if note_context:
+            system += f"\n\n{note_context}"
         
         # Build messages
         messages = []
@@ -133,6 +148,8 @@ async def chat_stream(message: str, memory_context: str = "", history: list = []
             system += f"\n\n{search_context}"
         if email_context:
             system += f"\n\n{email_context}"
+        if note_context:
+            system += f"\n\n{note_context}"
         
         messages = []
         if history:

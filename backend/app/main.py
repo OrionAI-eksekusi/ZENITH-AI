@@ -37,11 +37,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from app.routers import chat, voice, gmail, auth
+from app.routers import chat, voice, gmail, auth, notes
 app.include_router(chat.router)
 app.include_router(voice.router)
 app.include_router(gmail.router)
 app.include_router(auth.router)
+app.include_router(notes.router)
 
 @app.exception_handler(Exception)
 async def global_error_handler(request: Request, exc: Exception):
