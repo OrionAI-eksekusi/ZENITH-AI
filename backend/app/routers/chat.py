@@ -10,6 +10,7 @@ from app.memory.memory_engine import (
     save_conversation, auto_extract_memory
 )
 import json
+from app.core.limits import check_and_increment
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
