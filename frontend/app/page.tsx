@@ -51,6 +51,20 @@ export default function Home() {
     const fullName = user.name || 'Bos'
     setUserName(fullName.split(' ')[0])
     
+    // Welcome greeting untuk user baru
+    const isFirstVisit = !localStorage.getItem('zenith_visited')
+    if (isFirstVisit) {
+      localStorage.setItem('zenith_visited', '1')
+      setTimeout(() => {
+        fetch(`${BACKEND}/chat/`, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({user_id: user.user_id, message: `halo zenith, perkenalkan diri kamu dan jelaskan apa yang bisa kamu lakukan untuk aku`})
+        }).then(r=>r.json()).then(d=>{
+          if(d.response) setResponse(d.response)
+        }).catch(()=>{})
+      }, 1500)
+    }
+
     // Load user plan info
     fetch(`${BACKEND}/auth/info/${user.user_id}`)
       .then(r => r.json())
