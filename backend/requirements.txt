@@ -20,5 +20,5 @@ ddgs
 argon2-cffi==25.1.0
 
 pytz==2024.1
-playwright==1.60.0
-greenlet==3.5.1
+
+playwright>=1.40.0
