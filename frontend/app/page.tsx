@@ -127,6 +127,14 @@ export default function Home() {
       form.append('user_id', getUserId())
       const res = await fetch(`${BACKEND}/voice/transcribe`, {method:'POST', body:form})
       const data = await res.json()
+      if (data.status === 'limit') {
+        showError(data.response || 'Limit tercapai')
+        updateState('idle')
+        setActive(false)
+        activeRef.current = false
+        setTimeout(() => { window.location.href = '/upgrade' }, 2000)
+        return
+      }
       if (data.status !== 'success' || !data.transcript?.trim()) { if (activeRef.current) startRecording(); return }
       setTranscript(data.transcript)
       setResponse(data.response)
