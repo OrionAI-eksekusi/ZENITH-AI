@@ -74,12 +74,26 @@ async def chat(message: str, memory_context: str = "", history: list = [], user_
         # Notes jika diperlukan
         note_context = ""
         note_keywords = ["catat", "catatan", "simpan", "ingat ini", "note", "tulis"]
-        if any(kw in msg_lower for kw in note_keywords) and user_id:
+        recall_keywords = ["catatan gue", "catatan saya", "catatan apa", "apa catatan", "lihat catatan"]
+        msg_lower_check = message.lower()
+        
+        if any(kw in msg_lower_check for kw in recall_keywords) and user_id:
+            try:
+                from app.routers.notes import _get_notes
+                notes = _get_notes(user_id, limit=5)
+                if notes:
+                    lines = ["[CATATAN USER]"]
+                    for n in notes:
+                        lines.append(f"- {n['content'][:150]} ({n['created_at'][:10]})")
+                    note_context = "\n".join(lines)
+                else:
+                    note_context = "[USER BELUM PUNYA CATATAN]"
+            except:
+                pass
+        elif any(kw in msg_lower_check for kw in note_keywords) and user_id:
             try:
                 from app.routers.notes import _save_note
-                # Extract konten catatan dari message
-                content_to_save = message
-                _save_note(user_id, "Catatan ZANITH", content_to_save)
+                _save_note(user_id, "Catatan ZANITH", message)
                 note_context = "[CATATAN BERHASIL DISIMPAN KE DATABASE]"
             except:
                 pass
