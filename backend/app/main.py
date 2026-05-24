@@ -1,5 +1,5 @@
 """
-ZANITH AI — Autonomous Intelligence OS
+ZENITH AI — Autonomous Intelligence OS
 Backend Core v1.0
 """
 from fastapi import FastAPI, Request
@@ -15,15 +15,15 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("🚀 ZANITH AI starting...")
+    logger.info("🚀 ZENITH AI starting...")
     from app.core.database import init_db
     await init_db()
-    logger.info("✅ ZANITH AI ready")
+    logger.info("✅ ZENITH AI ready")
     yield
-    logger.info("👋 ZANITH AI shutdown")
+    logger.info("👋 ZENITH AI shutdown")
 
 app = FastAPI(
-    title="ZANITH AI",
+    title="ZENITH AI",
     description="Autonomous Intelligence Operating System",
     version="1.0.0",
     lifespan=lifespan
@@ -52,8 +52,8 @@ async def global_error_handler(request: Request, exc: Exception):
 
 @app.get("/")
 async def root():
-    return {"status": "ZANITH online 🚀", "version": "1.0.0"}
+    return {"status": "ZENITH online 🚀", "version": "1.0.0"}
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "service": "ZANITH AI"}
+    return {"status": "ok", "service": "ZENITH AI"}

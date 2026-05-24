@@ -1,5 +1,5 @@
 """
-ZANITH AI — Core Config
+ZENITH AI — Core Config
 """
 import os
 
@@ -14,7 +14,7 @@ DATABASE_URL = os.getenv("DATABASE_URL", "")
 # App
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 BACKEND_URL  = os.getenv("BACKEND_URL", "http://localhost:8000")
-JWT_SECRET   = os.getenv("JWT_SECRET", "zanith-secret-2026")
+JWT_SECRET   = os.getenv("JWT_SECRET", "zenith-secret-2026")
 
 # ElevenLabs
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", "")

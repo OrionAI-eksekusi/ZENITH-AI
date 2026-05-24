@@ -1,5 +1,5 @@
 """
-ZANITH AI — Database Core
+ZENITH AI — Database Core
 PostgreSQL connection + table initialization
 """
 import os
@@ -12,7 +12,7 @@ def get_conn():
     return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
 
 async def init_db():
-    """Init semua tabel ZANITH"""
+    """Init semua tabel ZENITH"""
     import asyncio
     await asyncio.to_thread(_init_db_sync)
 
@@ -23,7 +23,7 @@ def _init_db_sync():
 
         # Users
         c.execute("""
-            CREATE TABLE IF NOT EXISTS zanith_users (
+            CREATE TABLE IF NOT EXISTS zenith_users (
                 id          SERIAL PRIMARY KEY,
                 user_id     TEXT UNIQUE NOT NULL,
                 name        TEXT DEFAULT '',
@@ -34,7 +34,7 @@ def _init_db_sync():
 
         # Memory — long term
         c.execute("""
-            CREATE TABLE IF NOT EXISTS zanith_memory (
+            CREATE TABLE IF NOT EXISTS zenith_memory (
                 id          SERIAL PRIMARY KEY,
                 user_id     TEXT NOT NULL,
                 key         TEXT NOT NULL,
@@ -47,7 +47,7 @@ def _init_db_sync():
 
         # Conversations
         c.execute("""
-            CREATE TABLE IF NOT EXISTS zanith_conversations (
+            CREATE TABLE IF NOT EXISTS zenith_conversations (
                 id          SERIAL PRIMARY KEY,
                 user_id     TEXT NOT NULL,
                 role        TEXT NOT NULL,
@@ -58,7 +58,7 @@ def _init_db_sync():
 
         # Tasks
         c.execute("""
-            CREATE TABLE IF NOT EXISTS zanith_tasks (
+            CREATE TABLE IF NOT EXISTS zenith_tasks (
                 id          SERIAL PRIMARY KEY,
                 user_id     TEXT NOT NULL,
                 title       TEXT NOT NULL,
@@ -70,6 +70,6 @@ def _init_db_sync():
         """)
 
         conn.commit()
-        print("[ZANITH] ✅ Database initialized")
+        print("[ZENITH] ✅ Database initialized")
     finally:
         conn.close()

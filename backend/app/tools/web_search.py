@@ -1,5 +1,5 @@
 """
-ZANITH AI — Web Search Tool
+ZENITH AI — Web Search Tool
 """
 from ddgs import DDGS
 

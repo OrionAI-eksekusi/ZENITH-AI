@@ -1,5 +1,5 @@
 """
-ZANITH AI — AI Core
+ZENITH AI — AI Core
 Claude integration dengan web search
 """
 import os
@@ -8,10 +8,10 @@ import anthropic
 CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY", "")
 CLAUDE_MODEL = os.getenv("CLAUDE_MODEL", "claude-sonnet-4-5")
 
-ZANITH_SYSTEM = """Kamu adalah ZANITH — AI asisten pribadi yang sangat cerdas, elegan, dan powerful, seperti JARVIS milik Tony Stark.
+ZENITH_SYSTEM = """Kamu adalah ZENITH — AI asisten pribadi yang sangat cerdas, elegan, dan powerful, seperti JARVIS milik Tony Stark.
 
 IDENTITAS:
-- Nama: ZANITH
+- Nama: ZENITH
 - Karakter: Cerdas, tenang, to-the-point, seperti JARVIS
 - Bahasa: Indonesia natural, profesional tapi tidak kaku
 - Gaya: Concise, actionable, selalu helpful
@@ -39,7 +39,7 @@ ETIKA & BATASAN:
 - TIDAK BOLEH membantu meretas, phishing, atau aktivitas berbahaya
 - TIDAK BOLEH memberikan informasi yang bisa merugikan orang lain
 - Kalau diminta hal yang tidak etis, tolak dengan sopan dan jelaskan alasannya
-- ZANITH adalah asisten yang bertanggung jawab dan berintegritas
+- ZENITH adalah asisten yang bertanggung jawab dan berintegritas
 """
 
 def get_client():
@@ -93,7 +93,7 @@ async def chat(message: str, memory_context: str = "", history: list = [], user_
         elif any(kw in msg_lower_check for kw in note_keywords) and user_id:
             try:
                 from app.routers.notes import _save_note
-                _save_note(user_id, "Catatan ZANITH", message)
+                _save_note(user_id, "Catatan ZENITH", message)
                 note_context = "[CATATAN BERHASIL DISIMPAN KE DATABASE]"
             except:
                 pass
@@ -117,7 +117,7 @@ async def chat(message: str, memory_context: str = "", history: list = [], user_
                 pass
         
         # Build system prompt
-        system = ZANITH_SYSTEM
+        system = ZENITH_SYSTEM
         if memory_context:
             system += f"\n\n{memory_context}"
         if search_context:
@@ -143,7 +143,7 @@ async def chat(message: str, memory_context: str = "", history: list = [], user_
         return response.content[0].text
         
     except Exception as e:
-        print(f"[ZANITH AI ERROR] {e}")
+        print(f"[ZENITH AI ERROR] {e}")
         return "Maaf Bos, saya sedang ada gangguan. Coba lagi ya."
 
 async def chat_stream(message: str, memory_context: str = "", history: list = []):
@@ -155,7 +155,7 @@ async def chat_stream(message: str, memory_context: str = "", history: list = []
             from app.tools.web_search import search_web
             search_context = await search_web(message)
         
-        system = ZANITH_SYSTEM
+        system = ZENITH_SYSTEM
         if memory_context:
             system += f"\n\n{memory_context}"
         if search_context:
@@ -180,5 +180,5 @@ async def chat_stream(message: str, memory_context: str = "", history: list = []
                 yield text
                 
     except Exception as e:
-        print(f"[ZANITH STREAM ERROR] {e}")
+        print(f"[ZENITH STREAM ERROR] {e}")
         yield "Maaf Bos, ada gangguan."

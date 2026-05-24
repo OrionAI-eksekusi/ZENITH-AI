@@ -1,5 +1,5 @@
 """
-ZANITH AI — Memory Engine Level 2
+ZENITH AI — Memory Engine Level 2
 Persistent memory yang lebih pintar
 """
 import asyncio
@@ -11,7 +11,7 @@ def _save_memory_sync(user_id: str, key: str, value: str, category: str = "gener
     try:
         c = conn.cursor()
         c.execute("""
-            INSERT INTO zanith_memory (user_id, key, value, category, updated_at)
+            INSERT INTO zenith_memory (user_id, key, value, category, updated_at)
             VALUES (%s, %s, %s, %s, NOW())
             ON CONFLICT (user_id, key) DO UPDATE SET
                 value = excluded.value,
@@ -25,7 +25,7 @@ def _get_memory_sync(user_id: str) -> dict:
     conn = get_conn()
     try:
         c = conn.cursor()
-        c.execute("SELECT key, value, category FROM zanith_memory WHERE user_id = %s", (user_id,))
+        c.execute("SELECT key, value, category FROM zenith_memory WHERE user_id = %s", (user_id,))
         rows = c.fetchall()
         return {r["key"]: {"value": r["value"], "category": r["category"]} for r in rows}
     finally:
@@ -36,7 +36,7 @@ def _save_conversation_sync(user_id: str, role: str, content: str):
     try:
         c = conn.cursor()
         c.execute("""
-            INSERT INTO zanith_conversations (user_id, role, content)
+            INSERT INTO zenith_conversations (user_id, role, content)
             VALUES (%s, %s, %s)
         """, (user_id, role, content))
         conn.commit()
@@ -48,7 +48,7 @@ def _get_history_sync(user_id: str, limit: int = 20) -> list:
     try:
         c = conn.cursor()
         c.execute("""
-            SELECT role, content FROM zanith_conversations
+            SELECT role, content FROM zenith_conversations
             WHERE user_id = %s
             ORDER BY created_at DESC LIMIT %s
         """, (user_id, limit))

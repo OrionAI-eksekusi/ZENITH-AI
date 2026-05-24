@@ -1,5 +1,5 @@
 """
-ZANITH AI — Auth Router
+ZENITH AI — Auth Router
 """
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-JWT_SECRET = os.getenv("JWT_SECRET", "zanith-secret-2026")
+JWT_SECRET = os.getenv("JWT_SECRET", "zenith-secret-2026")
 
 def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
@@ -33,14 +33,14 @@ def _register_user(email: str, password: str, name: str) -> dict:
     conn = get_conn()
     try:
         c = conn.cursor()
-        c.execute("SELECT id FROM zanith_users WHERE email = %s", (email,))
+        c.execute("SELECT id FROM zenith_users WHERE email = %s", (email,))
         if c.fetchone():
             return {"error": "Email sudah terdaftar"}
         user_id = str(random.randint(100000, 999999))
         hashed = hash_password(password)
         user_id = str(random.randint(100000, 999999))
         c.execute("""
-            INSERT INTO zanith_users (user_id, email, name, password_hash, created_at)
+            INSERT INTO zenith_users (user_id, email, name, password_hash, created_at)
             VALUES (%s, %s, %s, %s, NOW())
         """, (user_id, email, name, hashed))
         conn.commit()
@@ -52,7 +52,7 @@ def _login_user(email: str, password: str) -> dict:
     conn = get_conn()
     try:
         c = conn.cursor()
-        c.execute("SELECT id, email, name, password_hash FROM zanith_users WHERE email = %s", (email,))
+        c.execute("SELECT id, email, name, password_hash FROM zenith_users WHERE email = %s", (email,))
         user = c.fetchone()
         if not user:
             return {"error": "Email tidak ditemukan"}
@@ -75,7 +75,7 @@ async def register(request: Request):
         return JSONResponse({"status": "error", "message": result["error"]})
     token = create_token(result["user_id"], result["email"])
     
-    # Auto simpan nama ke memory ZANITH
+    # Auto simpan nama ke memory ZENITH
     try:
         from app.memory.memory_engine import save_memory
         import asyncio
@@ -97,7 +97,7 @@ async def login(request: Request):
         return JSONResponse({"status": "error", "message": result["error"]})
     token = create_token(result["user_id"], result["email"])
     
-    # Auto simpan nama ke memory ZANITH
+    # Auto simpan nama ke memory ZENITH
     try:
         from app.memory.memory_engine import save_memory
         import asyncio
@@ -140,7 +140,7 @@ async def user_info(user_id: str):
     conn = get_conn()
     try:
         c = conn.cursor()
-        c.execute("SELECT plan, commands_today, trial_start FROM zanith_users WHERE user_id = %s", (user_id,))
+        c.execute("SELECT plan, commands_today, trial_start FROM zenith_users WHERE user_id = %s", (user_id,))
         user = c.fetchone()
         if not user:
             return JSONResponse({"status": "error"})

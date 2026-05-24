@@ -1,5 +1,5 @@
 """
-ZANITH AI — Voice Router
+ZENITH AI — Voice Router
 MediaRecorder (browser) → ElevenLabs STT → Claude → ElevenLabs TTS
 """
 from fastapi import APIRouter, Request, UploadFile, File, Form

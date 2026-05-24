@@ -1,5 +1,5 @@
 """
-ZANITH AI — Notes Router
+ZENITH AI — Notes Router
 Simpan dan ambil catatan user
 """
 from fastapi import APIRouter, Request
@@ -14,7 +14,7 @@ def _save_note(user_id: str, title: str, content: str) -> dict:
     try:
         c = conn.cursor()
         c.execute("""
-            INSERT INTO zanith_notes (user_id, title, content, created_at)
+            INSERT INTO zenith_notes (user_id, title, content, created_at)
             VALUES (%s, %s, %s, NOW()) RETURNING id
         """, (user_id, title, content))
         note_id = c.fetchone()["id"]
@@ -29,7 +29,7 @@ def _get_notes(user_id: str, limit: int = 10) -> list:
         c = conn.cursor()
         c.execute("""
             SELECT id, title, content, created_at 
-            FROM zanith_notes 
+            FROM zenith_notes 
             WHERE user_id = %s 
             ORDER BY created_at DESC 
             LIMIT %s

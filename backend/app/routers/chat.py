@@ -1,5 +1,5 @@
 """
-ZANITH AI — Chat Router
+ZENITH AI — Chat Router
 Main conversation endpoint dengan streaming
 """
 from fastapi import APIRouter, Request
@@ -17,7 +17,7 @@ router = APIRouter(prefix="/chat", tags=["chat"])
 
 @router.post("/")
 async def chat_endpoint(request: Request):
-    """Chat dengan ZANITH — regular response"""
+    """Chat dengan ZENITH — regular response"""
     data = await request.json()
     user_id = data.get("user_id", "default")
     message = data.get("message", "")
@@ -56,7 +56,7 @@ async def chat_endpoint(request: Request):
 
 @router.post("/stream")
 async def chat_stream_endpoint(request: Request):
-    """Chat dengan ZANITH — streaming response"""
+    """Chat dengan ZENITH — streaming response"""
     data    = await request.json()
     user_id = data.get("user_id", "default")
     message = data.get("message", "")
@@ -108,7 +108,7 @@ async def clear_history(user_id: str):
         conn = get_conn()
         try:
             c = conn.cursor()
-            c.execute("DELETE FROM zanith_conversations WHERE user_id = %s", (user_id,))
+            c.execute("DELETE FROM zenith_conversations WHERE user_id = %s", (user_id,))
             conn.commit()
         finally:
             conn.close()

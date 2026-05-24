@@ -1,5 +1,5 @@
 """
-ZANITH AI — Voice Service
+ZENITH AI — Voice Service
 ElevenLabs STT + TTS
 """
 import os

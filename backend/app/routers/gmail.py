@@ -1,5 +1,5 @@
 """
-ZANITH AI — Gmail Router
+ZENITH AI — Gmail Router
 """
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse, RedirectResponse
@@ -21,7 +21,7 @@ GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
 BACKEND_URL = os.getenv("BACKEND_URL", "https://zenith-ai-production-c5d7.up.railway.app")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "https://zenith-ai-gules.vercel.app")
-JWT_SECRET = os.getenv("JWT_SECRET", "zanith-secret-2026")
+JWT_SECRET = os.getenv("JWT_SECRET", "zenith-secret-2026")
 
 SCOPES = [
     "https://www.googleapis.com/auth/gmail.readonly",
@@ -50,7 +50,7 @@ def _save_token(user_id: str, token_data: dict):
     try:
         c = conn.cursor()
         c.execute("""
-            INSERT INTO zanith_memory (user_id, key, value, category, updated_at)
+            INSERT INTO zenith_memory (user_id, key, value, category, updated_at)
             VALUES (%s, 'gmail_token', %s, 'auth', NOW())
             ON CONFLICT (user_id, key) DO UPDATE SET value = excluded.value, updated_at = NOW()
         """, (user_id, json_lib.dumps(token_data)))
@@ -62,7 +62,7 @@ def _get_token(user_id: str):
     conn = get_conn()
     try:
         c = conn.cursor()
-        c.execute("SELECT value FROM zanith_memory WHERE user_id = %s AND key = 'gmail_token'", (user_id,))
+        c.execute("SELECT value FROM zenith_memory WHERE user_id = %s AND key = 'gmail_token'", (user_id,))
         row = c.fetchone()
         return json_lib.loads(row['value']) if row else None
     finally:
@@ -72,13 +72,13 @@ def _get_or_create_user(email: str, name: str) -> str:
     conn = get_conn()
     try:
         c = conn.cursor()
-        c.execute("SELECT user_id FROM zanith_users WHERE email = %s", (email,))
+        c.execute("SELECT user_id FROM zenith_users WHERE email = %s", (email,))
         existing = c.fetchone()
         if existing:
             return str(existing["user_id"])
         user_id = str(random.randint(100000, 999999))
         c.execute("""
-            INSERT INTO zanith_users (user_id, email, name, password_hash, created_at)
+            INSERT INTO zenith_users (user_id, email, name, password_hash, created_at)
             VALUES (%s, %s, %s, %s, NOW())
         """, (user_id, email, name, hashlib.sha256(b"google_oauth").hexdigest()))
         conn.commit()

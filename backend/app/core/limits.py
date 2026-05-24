@@ -1,5 +1,5 @@
 """
-ZANITH AI — Usage Limits
+ZENITH AI — Usage Limits
 Trial: 10 perintah/hari, 3 hari
 Premium: 20 perintah/hari
 """
@@ -16,7 +16,7 @@ def check_and_increment(user_id: str) -> dict:
     conn = get_conn()
     try:
         c = conn.cursor()
-        c.execute("SELECT plan, commands_today, last_reset, trial_start FROM zanith_users WHERE user_id = %s", (user_id,))
+        c.execute("SELECT plan, commands_today, last_reset, trial_start FROM zenith_users WHERE user_id = %s", (user_id,))
         user = c.fetchone()
         
         if not user:
@@ -41,7 +41,7 @@ def check_and_increment(user_id: str) -> dict:
         # Reset harian
         if last_reset < today:
             commands_today = 0
-            c.execute("UPDATE zanith_users SET commands_today = 0, last_reset = %s WHERE user_id = %s", (today, user_id))
+            c.execute("UPDATE zenith_users SET commands_today = 0, last_reset = %s WHERE user_id = %s", (today, user_id))
             conn.commit()
 
         # Cek limit harian
@@ -54,7 +54,7 @@ def check_and_increment(user_id: str) -> dict:
             }
 
         # Increment
-        c.execute("UPDATE zanith_users SET commands_today = commands_today + 1 WHERE user_id = %s", (user_id,))
+        c.execute("UPDATE zenith_users SET commands_today = commands_today + 1 WHERE user_id = %s", (user_id,))
         conn.commit()
 
         return {
