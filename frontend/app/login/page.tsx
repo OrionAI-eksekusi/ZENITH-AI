@@ -145,7 +145,7 @@ export default function Login() {
             </button>
           </div>
 
-          <div style={{textAlign:'center',marginTop:14,fontSize:8,color:'rgba(77,123,255,0.15)',letterSpacing:'0.1em'}}>ZENITH AI · AUTONOMOUS INTELLIGENCE</div>
+          <div style={{textAlign:'center',marginTop:14,fontSize:8,color:'rgba(77,123,255,0.15)',letterSpacing:'0.1em'}}>© ZENITH AI 2026 · AUTONOMOUS INTELLIGENCE</div>
         </div>
       </div>
     </>

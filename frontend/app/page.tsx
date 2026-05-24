@@ -477,7 +477,7 @@ export default function Home() {
           }}>
             {active?'⏹  STOP':'▶  AKTIVASI ZENITH'}
           </button>
-          <span style={{fontSize:8,color:'rgba(255,255,255,0.1)',letterSpacing:'0.1em'}}>TAP ORB ATAU KLIK AKTIVASI</span>
+          <span style={{fontSize:8,color:'rgba(255,255,255,0.1)',letterSpacing:'0.1em'}}>© ZENITH AI 2026  ·  TAP ORB ATAU KLIK AKTIVASI</span>
         </div>
       </div>
     </>
