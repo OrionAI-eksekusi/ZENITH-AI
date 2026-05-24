@@ -58,7 +58,7 @@ export default function Home() {
       setTimeout(() => {
         fetch(`${BACKEND}/chat/`, {
           method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({user_id: user.user_id, message: `halo zenith, perkenalkan diri kamu dan jelaskan apa yang bisa kamu lakukan untuk aku`})
+          body: JSON.stringify({user_id: user.user_id, message: `halo zenith, sapa aku dengan nama ${user.name?.split(' ')[0] || 'Bos'} dan perkenalkan diri kamu secara singkat tanpa markdown, tanpa bullet points, cukup 2-3 kalimat natural`})
         }).then(r=>r.json()).then(d=>{
           if(d.response) setResponse(d.response)
         }).catch(()=>{})
