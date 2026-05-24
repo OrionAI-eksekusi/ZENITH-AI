@@ -19,3 +19,4 @@ elevenlabs==2.3.0
 ddgs
 argon2-cffi==25.1.0
 
+pytz==2024.1
