@@ -187,7 +187,7 @@ export default function Home() {
           const raw = atob(data.audio_b64)
           const buf = new Uint8Array(raw.length)
           for(let i=0;i<raw.length;i++) buf[i]=raw.charCodeAt(i)
-          audioCtx.decodeAudioData(buf.buffer, (decoded) => {
+          audioCtx.decodeAudioData(buf.buffer, (decoded: AudioBuffer) => {
             const src = audioCtx.createBufferSource()
             src.buffer = decoded
             src.connect(audioCtx.destination)
