@@ -30,7 +30,7 @@ async def get_presence_message(user_id: str) -> dict:
         messages.append(f"{greeting} Bos! Siap produktif hari ini?")
     elif hour in [12, 13]:
         messages.append("Sudah makan siang Bos? Jangan sampai lupa!")
-    elif hour in [17, 18]:
+    elif hour in [16, 17, 18]:
         messages.append("Hampir selesai kerja hari ini Bos. Ada yang perlu diselesaikan?")
     elif hour in [21, 22, 23]:
         messages.append("Sudah malam Bos, jangan lupa istirahat ya!")
