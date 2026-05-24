@@ -22,7 +22,7 @@ async def speech_to_text(audio_bytes: bytes, content_type: str = "audio/wav") ->
                 "https://api.elevenlabs.io/v1/speech-to-text",
                 headers={"xi-api-key": key},
                 files={"file": ("audio.wav", audio_bytes, content_type)},
-                data={"model_id": "scribe_v1"},
+                data={"model_id": "scribe_v1", "language_code": "id"},
             )
             return response.json().get("text", "").strip()
     except Exception as e:
