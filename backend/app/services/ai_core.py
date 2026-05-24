@@ -98,6 +98,28 @@ async def chat(message: str, memory_context: str = "", history: list = [], user_
             except:
                 pass
 
+        # Browser scraping jika diperlukan
+        browser_context = ""
+        browser_keywords = ["scrape", "buka website", "buka url", "cek website", "ambil data dari", "buka halaman"]
+        if any(kw in msg_lower_check for kw in browser_keywords) and user_id:
+            try:
+                from app.routers.browser import scrape_url, search_web
+                import re
+                url_match = re.search(r'https?://[^\s]+', message)
+                if url_match:
+                    result = await scrape_url(url_match.group())
+                    if result.get("status") == "success":
+                        browser_context = f"[KONTEN WEBSITE: {result['title']}]\n{result['content'][:2000]}"
+                else:
+                    result = await search_web(message)
+                    if result.get("results"):
+                        lines = ["[HASIL BROWSER SEARCH]"]
+                        for r in result["results"][:3]:
+                            lines.append(f"- {r['title']}: {r['snippet']}")
+                        browser_context = "\n".join(lines)
+            except Exception as ex:
+                print(f"[BROWSER CTX ERROR] {ex}")
+
         # Calendar jika diperlukan
         calendar_context = ""
         calendar_keywords = ["jadwal", "calendar", "kalender", "meeting", "event", "agenda", "besok", "minggu ini", "hari ini"]
@@ -137,6 +159,8 @@ async def chat(message: str, memory_context: str = "", history: list = [], user_
             system += f"\n\n{memory_context}"
         if search_context:
             system += f"\n\n{search_context}"
+        if browser_context:
+            system += f"\n\n{browser_context}"
         if calendar_context:
             system += f"\n\n{calendar_context}"
         if email_context:
@@ -177,6 +201,8 @@ async def chat_stream(message: str, memory_context: str = "", history: list = []
             system += f"\n\n{memory_context}"
         if search_context:
             system += f"\n\n{search_context}"
+        if browser_context:
+            system += f"\n\n{browser_context}"
         if calendar_context:
             system += f"\n\n{calendar_context}"
         if email_context:
