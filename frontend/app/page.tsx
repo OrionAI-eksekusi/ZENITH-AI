@@ -25,6 +25,7 @@ export default function Home() {
   const [waveform, setWaveform] = useState<number[]>(Array(20).fill(2))
   const [errorMsg, setErrorMsg] = useState('')
   const [userPlan, setUserPlan] = useState<any>(null)
+  const [presenceMsg, setPresenceMsg] = useState('')
 
   const stateRef = useRef<State>('idle')
   const activeRef = useRef(false)
@@ -51,6 +52,21 @@ export default function Home() {
     const fullName = user.name || 'Bos'
     setUserName(fullName.split(' ')[0])
     
+    // Presence layer polling setiap 5 menit
+    const checkPresence = async () => {
+      try {
+        const res = await fetch(`${BACKEND}/presence/check/${user.user_id}`)
+        const data = await res.json()
+        if (data.has_message && data.messages.length > 0) {
+          setPresenceMsg(data.messages[0])
+          setTimeout(() => setPresenceMsg(''), 8000)
+        }
+      } catch {}
+    }
+    checkPresence()
+    const presenceInterval = setInterval(checkPresence, 5 * 60 * 1000)
+    setTimeout(() => clearInterval(presenceInterval), 60 * 60 * 1000)
+
     // Welcome greeting untuk user baru
     const isFirstVisit = !localStorage.getItem('zenith_visited')
     if (isFirstVisit) {
@@ -455,6 +471,13 @@ export default function Home() {
               </div>
             )}
           </div>
+
+          {/* Presence notification */}
+          {presenceMsg && (
+            <div style={{position:'absolute',top:60,left:'50%',transform:'translateX(-50%)',background:'rgba(77,123,255,0.08)',border:'1px solid rgba(77,123,255,0.2)',borderRadius:8,padding:'10px 18px',fontSize:9,color:'rgba(77,123,255,0.8)',letterSpacing:'0.1em',animation:'fadeIn 0.3s ease',whiteSpace:'nowrap',maxWidth:'80vw',textAlign:'center'}}>
+              🤖 {presenceMsg}
+            </div>
+          )}
 
           {/* Error notification */}
           {errorMsg && (
