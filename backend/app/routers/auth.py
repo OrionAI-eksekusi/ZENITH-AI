@@ -131,3 +131,33 @@ async def google_login(redirect_after: str = "app"):
     )
     from fastapi.responses import RedirectResponse
     return RedirectResponse(auth_url)
+
+@router.get("/info/{user_id}")
+async def user_info(user_id: str):
+    """Get user plan dan sisa trial"""
+    from app.core.database import get_conn
+    from datetime import date
+    conn = get_conn()
+    try:
+        c = conn.cursor()
+        c.execute("SELECT plan, commands_today, trial_start FROM zanith_users WHERE user_id = %s", (user_id,))
+        user = c.fetchone()
+        if not user:
+            return JSONResponse({"status": "error"})
+        
+        plan = user["plan"] or "trial"
+        trial_start = user["trial_start"] or date.today()
+        days_used = (date.today() - trial_start).days
+        days_left = max(0, 3 - days_used)
+        limit = 10 if plan == "trial" else 20
+        commands_used = user["commands_today"] or 0
+        
+        return JSONResponse({
+            "status": "success",
+            "plan": plan,
+            "commands_used": commands_used,
+            "commands_limit": limit,
+            "trial_days_left": days_left if plan == "trial" else None
+        })
+    finally:
+        conn.close()

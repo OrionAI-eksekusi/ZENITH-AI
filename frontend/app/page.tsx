@@ -24,6 +24,7 @@ export default function Home() {
   const [time, setTime] = useState('')
   const [waveform, setWaveform] = useState<number[]>(Array(20).fill(2))
   const [errorMsg, setErrorMsg] = useState('')
+  const [userPlan, setUserPlan] = useState<any>(null)
 
   const stateRef = useRef<State>('idle')
   const activeRef = useRef(false)
@@ -48,6 +49,12 @@ export default function Home() {
     const user = JSON.parse(localStorage.getItem('zanith_user') || '{}')
     if (!user.user_id) { window.location.href = '/login'; return }
     setUserName(user.name || 'Bos')
+    
+    // Load user plan info
+    fetch(`${BACKEND}/auth/info/${user.user_id}`)
+      .then(r => r.json())
+      .then(d => { if(d.status === 'success') setUserPlan(d) })
+      .catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -288,6 +295,21 @@ export default function Home() {
               {userName}
             </div>
 
+            {userPlan && (
+              <div style={{marginBottom:12,padding:'10px 12px',background:'rgba(77,123,255,0.04)',border:'1px solid rgba(77,123,255,0.1)',borderRadius:8}}>
+                <div style={{fontSize:8,color:'rgba(255,255,255,0.3)',letterSpacing:'0.1em',marginBottom:6}}>
+                  {userPlan.plan === 'trial' ? 'TRIAL' : 'PREMIUM'}
+                </div>
+                <div style={{fontSize:9,color:'rgba(255,255,255,0.6)',marginBottom:4}}>
+                  {userPlan.commands_used}/{userPlan.commands_limit} perintah hari ini
+                </div>
+                {userPlan.plan === 'trial' && (
+                  <div style={{fontSize:8,color:userPlan.trial_days_left <= 1?'rgba(239,68,68,0.7)':'rgba(255,165,0,0.7)',letterSpacing:'0.05em'}}>
+                    ⏳ Sisa {userPlan.trial_days_left} hari trial
+                  </div>
+                )}
+              </div>
+            )}
             <button onClick={() => {setSidebarOpen(false); window.location.href='/upgrade'}} style={{width:'100%',marginBottom:8,padding:'10px',background:'linear-gradient(135deg,rgba(77,123,255,0.08),rgba(139,92,246,0.08))',border:'1px solid rgba(77,123,255,0.2)',borderRadius:8,color:'#4c7bff',fontFamily:'JetBrains Mono,monospace',fontSize:9,letterSpacing:'0.12em',cursor:'pointer'}}>
               ⬆ UPGRADE PREMIUM
             </button>
