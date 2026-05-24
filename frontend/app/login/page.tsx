@@ -61,20 +61,31 @@ export default function Login() {
         <div style={{width:380,animation:'fadeIn 0.4s ease'}}>
 
           <div style={{textAlign:'center',marginBottom:36}}>
-            <div style={{width:52,height:52,background:'linear-gradient(135deg,#1a2347,#0d1228)',border:'1px solid rgba(77,123,255,0.25)',borderRadius:13,display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 14px',boxShadow:'0 0 30px rgba(77,123,255,0.15)'}}>
-              <svg viewBox="0 0 200 200" width="38" height="38">
+            <div style={{margin:'0 auto 16px',width:80,height:80,display:'flex',alignItems:'center',justifyContent:'center'}}>
+              <svg viewBox="0 0 200 200" width="80" height="80" style={{filter:'drop-shadow(0 0 20px rgba(77,123,255,0.4))'}}>
                 <defs>
-                  <radialGradient id="g1" cx="50%" cy="50%" r="60%">
+                  <radialGradient id="lg1" cx="50%" cy="50%" r="60%">
                     <stop offset="40%" stopColor="#4c7bff" stopOpacity="0"/>
                     <stop offset="58%" stopColor="#4c7bff" stopOpacity="0.9"/>
                     <stop offset="70%" stopColor="#4c7bff" stopOpacity="0"/>
                   </radialGradient>
+                  <radialGradient id="lg2" cx="50%" cy="50%" r="55%">
+                    <stop offset="55%" stopColor="#8b5cf6" stopOpacity="0"/>
+                    <stop offset="80%" stopColor="#8b5cf6" stopOpacity="0.2"/>
+                    <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0"/>
+                  </radialGradient>
+                  <radialGradient id="lg3" cx="35%" cy="25%" r="80%">
+                    <stop offset="0%" stopColor="#1a2347"/>
+                    <stop offset="60%" stopColor="#0a0f24"/>
+                    <stop offset="100%" stopColor="#050814"/>
+                  </radialGradient>
                 </defs>
-                <rect width="200" height="200" fill="#0d1228"/>
-                <circle cx="100" cy="100" r="72" fill="url(#g1)"/>
-                <circle cx="100" cy="100" r="68" fill="none" stroke="#4c7bff" strokeWidth="1.5" opacity="0.9"/>
-                <circle cx="100" cy="100" r="58" fill="#08101f"/>
-                <circle cx="78" cy="76" r="4" fill="#4c7bff" opacity="0.75"/>
+                <circle cx="100" cy="100" r="100" fill="url(#lg3)"/>
+                <circle cx="100" cy="100" r="98" fill="url(#lg2)"/>
+                <circle cx="100" cy="100" r="72" fill="url(#lg1)"/>
+                <circle cx="100" cy="100" r="68" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="1" opacity="0.8"/>
+                <circle cx="100" cy="100" r="58" fill="#080d1a"/>
+                <circle cx="78" cy="76" r="3.5" fill="rgba(255,255,255,0.8)"/>
               </svg>
             </div>
             <div style={{fontSize:14,fontWeight:500,letterSpacing:'0.3em',background:'linear-gradient(90deg,#4c7bff,#8b5cf6,#4c7bff)',backgroundSize:'200%',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',animation:'shimmer 4s linear infinite'}}>ZANITH</div>
