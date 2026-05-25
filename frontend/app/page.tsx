@@ -31,6 +31,8 @@ export default function Home() {
   const [errorMsg, setErrorMsg] = useState('')
   const [userPlan, setUserPlan] = useState<any>(null)
   const [presenceMsg, setPresenceMsg] = useState('')
+  const [memories, setMemories] = useState<any[]>([])
+  const [chatHistory, setChatHistory] = useState<string[]>([])
 
   const stateRef = useRef<State>('idle')
   const activeRef = useRef(false)
@@ -57,6 +59,12 @@ export default function Home() {
     const fullName = user.name || 'Bos'
     setUserName(fullName.split(' ')[0])
     
+    // Load memory panel
+    fetch(`${BACKEND}/auth/memory/${user.user_id}`)
+      .then(r => r.json())
+      .then(d => { if(d.memories) setMemories(d.memories) })
+      .catch(() => {})
+
     // Presence layer polling setiap 5 menit
     const checkPresence = async () => {
       try {
@@ -181,6 +189,7 @@ export default function Home() {
       if (data.status !== 'success' || !data.transcript?.trim()) { if (activeRef.current) startRecording(); return }
       setTranscript(data.transcript)
       setResponse(data.response)
+      if(data.transcript) setChatHistory(prev => [data.transcript, ...prev].slice(0, 5))
       if (data.audio_b64) {
         updateState('speaking')
         try {
@@ -333,6 +342,33 @@ export default function Home() {
                 </div>
               ))}
             </div>
+
+            <div style={{height:1,background:'rgba(255,255,255,0.05)',marginBottom:24}}/>
+
+            {/* Memory Panel */}
+            {memories.length > 0 && (
+              <div style={{marginBottom:20}}>
+                <div style={{fontSize:7,color:'rgba(255,255,255,0.25)',letterSpacing:'0.15em',marginBottom:10}}>ZENITH INGAT</div>
+                {memories.slice(0,4).map((m,i) => (
+                  <div key={i} style={{marginBottom:8,padding:'6px 8px',background:'rgba(77,123,255,0.03)',border:'1px solid rgba(77,123,255,0.06)',borderRadius:6}}>
+                    <div style={{fontSize:7,color:'rgba(77,123,255,0.4)',letterSpacing:'0.08em',marginBottom:2}}>{m.key.toUpperCase()}</div>
+                    <div style={{fontSize:8,color:'rgba(255,255,255,0.4)',letterSpacing:'0.04em'}}>{m.value.slice(0,60)}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Chat History */}
+            {chatHistory.length > 0 && (
+              <div style={{marginBottom:20}}>
+                <div style={{fontSize:7,color:'rgba(255,255,255,0.25)',letterSpacing:'0.15em',marginBottom:10}}>RIWAYAT</div>
+                {chatHistory.map((h,i) => (
+                  <div key={i} style={{fontSize:8,color:'rgba(255,255,255,0.25)',marginBottom:6,padding:'4px 8px',borderLeft:'1px solid rgba(77,123,255,0.15)',letterSpacing:'0.03em'}}>
+                    {h.slice(0,50)}{h.length > 50 ? '...' : ''}
+                  </div>
+                ))}
+              </div>
+            )}
 
             <div style={{height:1,background:'rgba(255,255,255,0.05)',marginBottom:24}}/>
 
