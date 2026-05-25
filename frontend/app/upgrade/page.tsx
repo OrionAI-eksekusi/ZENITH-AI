@@ -102,6 +102,10 @@ export default function Upgrade() {
         <button onClick={() => router.push('/')} style={{marginTop:32,background:'none',border:'none',color:'rgba(255,255,255,0.2)',fontFamily:'JetBrains Mono,monospace',fontSize:9,letterSpacing:'0.1em',cursor:'pointer'}}>
           ← KEMBALI KE ZENITH
         </button>
+        <div style={{marginTop:16,display:'flex',gap:16,justifyContent:'center'}}>
+          <a href='/privacy' style={{color:'rgba(77,123,255,0.2)',textDecoration:'none',fontFamily:'JetBrains Mono,monospace',fontSize:7,letterSpacing:'0.08em'}}>PRIVACY POLICY</a>
+          <a href='/terms' style={{color:'rgba(77,123,255,0.2)',textDecoration:'none',fontFamily:'JetBrains Mono,monospace',fontSize:7,letterSpacing:'0.08em'}}>TERMS OF SERVICE</a>
+        </div>
       </div>
     </>
   )
