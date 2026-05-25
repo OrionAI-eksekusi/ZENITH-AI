@@ -161,3 +161,20 @@ async def user_info(user_id: str):
         })
     finally:
         conn.close()
+
+@router.get("/memory/{user_id}")
+async def get_memory(user_id: str):
+    """Get memory snippets untuk workspace panel"""
+    from app.core.database import get_conn
+    conn = get_conn()
+    try:
+        c = conn.cursor()
+        c.execute("""
+            SELECT key, value FROM zenith_memory 
+            WHERE user_id = %s AND key != 'gmail_token'
+            ORDER BY updated_at DESC LIMIT 10
+        """, (user_id,))
+        memories = [{"key": r["key"], "value": r["value"][:100]} for r in c.fetchall()]
+        return {"status": "success", "memories": memories}
+    finally:
+        conn.close()
