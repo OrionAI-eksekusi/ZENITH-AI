@@ -517,7 +517,14 @@ export default function Home() {
             {transcript&&<div style={{fontSize:11,color:'rgba(255,255,255,0.35)',marginBottom:10,animation:'fadeIn 0.2s ease',fontStyle:'italic'}}>"{transcript}"</div>}
             {response&&(
               <div style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:14,padding:'14px 18px',animation:'fadeIn 0.3s ease',maxHeight:200,overflowY:'auto'}}>
-                <div style={{fontSize:12,color:'rgba(255,255,255,0.8)',lineHeight:1.8,letterSpacing:'0.02em'}} dangerouslySetInnerHTML={{__html: response.replace(/\*\*(.+?)\*\*/g,'<strong style="color:rgba(255,255,255,0.95)">$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>').replace(/\n/g,'<br/>')}}/>
+                <div style={{fontSize:12,color:'rgba(255,255,255,0.8)',lineHeight:1.8,letterSpacing:'0.02em'}} dangerouslySetInnerHTML={{__html: response
+  .replace(/#{1,3} /g,'')
+  .replace(/---/g,'')
+  .replace(/\*\*(.+?)\*\*/g,'<strong style="color:rgba(255,255,255,0.95)">$1</strong>')
+  .replace(/\*(.+?)\*/g,'<em>$1</em>')
+  .replace(/
+/g,'<br/>')
+}}/>
               </div>
             )}
           </div>
