@@ -190,6 +190,15 @@ export default function Home() {
       setTranscript(data.transcript)
       setResponse(data.response)
       if(data.transcript) setChatHistory(prev => [data.transcript, ...prev].slice(0, 5))
+      // Detect OPEN command dari ZENITH
+      if (data.response && data.response.includes('[OPEN:')) {
+        const match = data.response.match(/\[OPEN:(.*?)\]/)
+        if (match) {
+          const url = match[1]
+          window.open(url, '_blank')
+        }
+      }
+
       if (data.audio_b64) {
         updateState('speaking')
         try {
