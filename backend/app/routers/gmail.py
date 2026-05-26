@@ -159,6 +159,18 @@ async def gmail_callback(code: str, state: str):
     except Exception as e:
         return JSONResponse({"status": "error", "message": str(e)})
 
+@router.post("/send")
+async def send_email_endpoint(request: Request):
+    data = await request.json()
+    user_id = data.get("user_id", "")
+    to = data.get("to", "")
+    subject = data.get("subject", "")
+    body = data.get("body", "")
+    if not all([user_id, to, body]):
+        return JSONResponse({"status": "error", "message": "Field tidak lengkap"})
+    result = await send_email(user_id, to, subject, body)
+    return JSONResponse(result)
+
 @router.get("/emails/{user_id}")
 async def get_emails(user_id: str, max_results: int = 5):
     creds_data = _get_token(user_id)
