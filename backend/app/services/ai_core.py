@@ -125,8 +125,14 @@ async def chat(message: str, memory_context: str = "", history: list = [], user_
                 from app.routers.browser import scrape_url, search_web
                 import re
                 url_match = re.search(r'https?://[^\s]+', message)
+                domain_match = re.search(r'([a-zA-Z0-9-]+\.(com|id|net|org|io|co\.id))', message)
                 if url_match:
                     result = await scrape_url(url_match.group())
+                    if result.get("status") == "success":
+                        browser_context = f"[KONTEN WEBSITE: {result['title']}]\n{result['content'][:2000]}"
+                elif domain_match:
+                    url = f"https://{domain_match.group()}"
+                    result = await scrape_url(url)
                     if result.get("status") == "success":
                         browser_context = f"[KONTEN WEBSITE: {result['title']}]\n{result['content'][:2000]}"
                 else:
