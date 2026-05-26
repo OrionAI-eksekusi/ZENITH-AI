@@ -256,6 +256,36 @@ export default function Home() {
     } else { setActive(true); activeRef.current = true; await startRecording() }
   }
 
+  const streamChat = async (message: string) => {
+    try {
+      const res = await fetch(`${BACKEND}/chat/stream`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({user_id: getUserId(), message})
+      })
+      const reader = res.body?.getReader()
+      const decoder = new TextDecoder()
+      let full = ''
+      if (!reader) return full
+      while (true) {
+        const {done, value} = await reader.read()
+        if (done) break
+        const text = decoder.decode(value)
+        const lines = text.split('\n').filter(l => l.startsWith('data:'))
+        for (const line of lines) {
+          try {
+            const data = JSON.parse(line.slice(5))
+            if (data.chunk) {
+              full += data.chunk
+              setResponse(full)
+            }
+          } catch {}
+        }
+      }
+      return full
+    } catch { return '' }
+  }
+
   const sendTextMessage = async (message: string) => {
     setSidebarOpen(false)
     updateState('thinking')
