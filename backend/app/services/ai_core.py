@@ -122,7 +122,7 @@ async def chat(message: str, memory_context: str = "", history: list = [], user_
         browser_keywords = ["scrape", "buka website", "buka url", "cek website", "ambil data dari", "buka halaman", "buka youtube", "buka tokopedia", "buka google", "buka", "cek halaman", "lihat website", "baca website"]
         if any(kw in msg_lower_check for kw in browser_keywords) and user_id:
             try:
-                from app.routers.browser import scrape_url, search_web
+                from app.routers.browser import scrape_url_playwright as scrape_url, search_web
                 import re
                 url_match = re.search(r'https?://[^\s]+', message)
                 domain_match = re.search(r'([a-zA-Z0-9-]+\.(com|id|net|org|io|co\.id))', message)
