@@ -8,7 +8,8 @@ from datetime import date
 
 LIMITS = {
     "trial": 10,
-    "premium": 20
+    "premium": 20,
+    "founder": 99999
 }
 TRIAL_DAYS = 3
 
