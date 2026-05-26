@@ -79,7 +79,8 @@ def get_client():
 
 EMAIL_KEYWORDS = [
     "email", "gmail", "inbox", "pesan masuk", "surat", "mail",
-    "cek email", "baca email", "ada email", "email baru", "email urgent"
+    "cek email", "baca email", "ada email", "email baru", "email urgent",
+    "balas email", "kirim email", "balaskan", "send email", "reply email"
 ]
 
 SEARCH_KEYWORDS = [
@@ -203,6 +204,18 @@ async def chat(message: str, memory_context: str = "", history: list = [], user_
             system += f"\n\n{calendar_context}"
         if email_context:
             system += f"\n\n{email_context}"
+
+        # Kirim/balas email jika diminta
+        send_keywords = ["balas email", "balaskan", "kirim email", "send email", "reply email"]
+        if any(kw in message.lower() for kw in send_keywords) and user_id:
+            system += """\n\n[KEMAMPUAN KIRIM EMAIL]
+ZENITH bisa kirim dan balas email dari Gmail user.
+Flow yang benar:
+1. Draft balasan dulu — tunjukkan ke user via voice
+2. Tanya konfirmasi: "Apakah Bos ingin saya kirimkan?"
+3. Kalau user setuju → kirim via API
+4. Kalau user minta ubah kata-kata → dengarkan dan kirim ulang
+JANGAN kirim email tanpa konfirmasi user terlebih dahulu."""
         if note_context:
             system += f"\n\n{note_context}"
         
@@ -245,6 +258,18 @@ async def chat_stream(message: str, memory_context: str = "", history: list = []
             system += f"\n\n{calendar_context}"
         if email_context:
             system += f"\n\n{email_context}"
+
+        # Kirim/balas email jika diminta
+        send_keywords = ["balas email", "balaskan", "kirim email", "send email", "reply email"]
+        if any(kw in message.lower() for kw in send_keywords) and user_id:
+            system += """\n\n[KEMAMPUAN KIRIM EMAIL]
+ZENITH bisa kirim dan balas email dari Gmail user.
+Flow yang benar:
+1. Draft balasan dulu — tunjukkan ke user via voice
+2. Tanya konfirmasi: "Apakah Bos ingin saya kirimkan?"
+3. Kalau user setuju → kirim via API
+4. Kalau user minta ubah kata-kata → dengarkan dan kirim ulang
+JANGAN kirim email tanpa konfirmasi user terlebih dahulu."""
         if note_context:
             system += f"\n\n{note_context}"
         
