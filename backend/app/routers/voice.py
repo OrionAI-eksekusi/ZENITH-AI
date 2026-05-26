@@ -44,27 +44,56 @@ async def transcribe_audio(audio: UploadFile = File(...), user_id: str = Form(de
 
         # Auto kirim email kalau user konfirmasi
         confirm_words = ["kirim", "iya kirim", "ya kirim", "kirimkan", "send", "oke kirim", "ok kirim", "sekarang", "ya sekarang", "oke sekarang", "balaskan sekarang", "ya", "iya"]
-        if any(w in transcript.lower() for w in confirm_words):
+        balas_words = ["balaskan", "balas", "reply", "balas email", "balaskan gmail"]
+        is_confirm = any(w in transcript.lower() for w in confirm_words)
+        is_balas = any(w in transcript.lower() for w in balas_words)
+        
+        if is_balas or is_confirm:
             try:
-                history_data = await get_history(user_id, limit=6)
+                from app.routers.gmail import get_emails_data, send_email
+                import re
+                
+                # Ambil email terbaru dari Gmail untuk dapat email address pengirim
+                emails_data = await get_emails_data(user_id, max_results=5)
                 email_to = None
-                email_body = None
-                email_subject = "Balasan dari ZENITH AI"
-                for h in history_data:
-                    if h.get("role") == "assistant" and "@" in h.get("content", ""):
-                        import re
-                        emails = re.findall(r'[\w\.-]+@[\w\.-]+\.\w+', h["content"])
-                        if emails:
-                            email_to = emails[0]
-                    if h.get("role") == "assistant" and len(h.get("content", "")) > 50:
-                        email_body = h["content"]
-                if email_to and email_body:
-                    from app.routers.gmail import send_email
-                    result = await send_email(user_id, email_to, email_subject, email_body)
-                    if result.get("status") == "success":
-                        response_text = f"Baik Bos, email sudah terkirim ke {email_to}!"
+                email_subject = "Re: "
+                
+                # Cari email yang relevan dari transcript
+                transcript_lower = transcript.lower()
+                for email in emails_data:
+                    sender = email.get("from", "")
+                    subject = email.get("subject", "")
+                    # Match nama pengirim dari transcript
+                    sender_name = sender.split("<")[0].strip().lower()
+                    if any(word in transcript_lower for word in sender_name.split() if len(word) > 3):
+                        # Extract email address dari field from
+                        email_match = re.search(r'<(.+?)>', sender)
+                        if email_match:
+                            email_to = email_match.group(1)
+                        else:
+                            email_to = sender
+                        email_subject = f"Re: {subject}"
+                        break
+                
+                if email_to:
+                    # Ambil draft dari history assistant
+                    history_data = await get_history(user_id, limit=4)
+                    email_body = None
+                    for h in reversed(history_data):
+                        if h.get("role") == "assistant" and len(h.get("content", "")) > 30:
+                            email_body = h["content"]
+                            break
+                    
+                    if email_body:
+                        result = await send_email(user_id, email_to, email_subject, email_body)
+                        if result.get("status") == "success":
+                            response_text = f"Baik Bos, email sudah terkirim ke {email_to}!"
+                        else:
+                            response_text = f"Maaf Bos, gagal kirim: {result.get('message')}"
                     else:
-                        response_text = f"Maaf Bos, gagal kirim email: {result.get('message')}"
+                        response_text = "Maaf Bos, tidak ada draft email yang ditemukan."
+                else:
+                    response_text = response_text  # Biarkan response Claude yang handle
             except Exception as ex:
                 print(f"[EMAIL SEND ERROR] {ex}")
 
