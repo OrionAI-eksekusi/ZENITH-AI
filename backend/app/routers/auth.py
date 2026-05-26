@@ -149,7 +149,7 @@ async def user_info(user_id: str):
         trial_start = user["trial_start"] or date.today()
         days_used = (date.today() - trial_start).days
         days_left = max(0, 3 - days_used)
-        limit = 10 if plan == "trial" else 20
+        limit = 10 if plan == "trial" else 99999 if plan == "founder" else 20
         commands_used = user["commands_today"] or 0
         
         return JSONResponse({
