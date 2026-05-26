@@ -43,7 +43,7 @@ async def transcribe_audio(audio: UploadFile = File(...), user_id: str = Form(de
         response_text = await chat(transcript, memory_ctx, history, user_id)
 
         # Auto kirim email kalau user konfirmasi
-        confirm_words = ["kirim", "iya kirim", "ya kirim", "kirimkan", "send", "oke kirim", "ok kirim"]
+        confirm_words = ["kirim", "iya kirim", "ya kirim", "kirimkan", "send", "oke kirim", "ok kirim", "sekarang", "ya sekarang", "oke sekarang", "balaskan sekarang", "ya", "iya"]
         if any(w in transcript.lower() for w in confirm_words):
             try:
                 history_data = await get_history(user_id, limit=6)
