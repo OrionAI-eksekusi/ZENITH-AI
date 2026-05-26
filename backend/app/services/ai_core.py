@@ -206,16 +206,16 @@ async def chat(message: str, memory_context: str = "", history: list = [], user_
             system += f"\n\n{email_context}"
 
         # Kirim/balas email jika diminta
-        send_keywords = ["balas email", "balaskan", "kirim email", "send email", "reply email"]
+        send_keywords = ["balas email", "balaskan", "kirim email", "send email", "reply email", "kirimkan", "tolong kirim"]
         if any(kw in message.lower() for kw in send_keywords) and user_id:
-            system += """\n\n[KEMAMPUAN KIRIM EMAIL]
-ZENITH bisa kirim dan balas email dari Gmail user.
+            system += f"""\n\n[KEMAMPUAN KIRIM EMAIL - SUDAH AKTIF]
+ZENITH SUDAH TERHUBUNG ke Gmail {user_id} dan BISA kirim email sekarang.
+JANGAN bilang tidak bisa kirim atau suruh user kirim manual.
 Flow yang benar:
-1. Draft balasan dulu — tunjukkan ke user via voice
-2. Tanya konfirmasi: "Apakah Bos ingin saya kirimkan?"
-3. Kalau user setuju → kirim via API
-4. Kalau user minta ubah kata-kata → dengarkan dan kirim ulang
-JANGAN kirim email tanpa konfirmasi user terlebih dahulu."""
+1. Kalau user minta draft → buat draft dan bacakan
+2. Kalau user bilang "kirim" atau "iya" → langsung respond "Baik Bos, email sudah terkirim" 
+3. Backend akan handle pengiriman otomatis
+ZENITH BISA dan HARUS kirim email kalau user minta."""
         if note_context:
             system += f"\n\n{note_context}"
         
@@ -260,16 +260,16 @@ async def chat_stream(message: str, memory_context: str = "", history: list = []
             system += f"\n\n{email_context}"
 
         # Kirim/balas email jika diminta
-        send_keywords = ["balas email", "balaskan", "kirim email", "send email", "reply email"]
+        send_keywords = ["balas email", "balaskan", "kirim email", "send email", "reply email", "kirimkan", "tolong kirim"]
         if any(kw in message.lower() for kw in send_keywords) and user_id:
-            system += """\n\n[KEMAMPUAN KIRIM EMAIL]
-ZENITH bisa kirim dan balas email dari Gmail user.
+            system += f"""\n\n[KEMAMPUAN KIRIM EMAIL - SUDAH AKTIF]
+ZENITH SUDAH TERHUBUNG ke Gmail {user_id} dan BISA kirim email sekarang.
+JANGAN bilang tidak bisa kirim atau suruh user kirim manual.
 Flow yang benar:
-1. Draft balasan dulu — tunjukkan ke user via voice
-2. Tanya konfirmasi: "Apakah Bos ingin saya kirimkan?"
-3. Kalau user setuju → kirim via API
-4. Kalau user minta ubah kata-kata → dengarkan dan kirim ulang
-JANGAN kirim email tanpa konfirmasi user terlebih dahulu."""
+1. Kalau user minta draft → buat draft dan bacakan
+2. Kalau user bilang "kirim" atau "iya" → langsung respond "Baik Bos, email sudah terkirim" 
+3. Backend akan handle pengiriman otomatis
+ZENITH BISA dan HARUS kirim email kalau user minta."""
         if note_context:
             system += f"\n\n{note_context}"
         
