@@ -42,6 +42,32 @@ async def transcribe_audio(audio: UploadFile = File(...), user_id: str = Form(de
         history    = await get_history(user_id)
         response_text = await chat(transcript, memory_ctx, history, user_id)
 
+        # Auto kirim email kalau user konfirmasi
+        confirm_words = ["kirim", "iya kirim", "ya kirim", "kirimkan", "send", "oke kirim", "ok kirim"]
+        if any(w in transcript.lower() for w in confirm_words):
+            try:
+                history_data = await get_history(user_id, limit=6)
+                email_to = None
+                email_body = None
+                email_subject = "Balasan dari ZENITH AI"
+                for h in history_data:
+                    if h.get("role") == "assistant" and "@" in h.get("content", ""):
+                        import re
+                        emails = re.findall(r'[\w\.-]+@[\w\.-]+\.\w+', h["content"])
+                        if emails:
+                            email_to = emails[0]
+                    if h.get("role") == "assistant" and len(h.get("content", "")) > 50:
+                        email_body = h["content"]
+                if email_to and email_body:
+                    from app.routers.gmail import send_email
+                    result = await send_email(user_id, email_to, email_subject, email_body)
+                    if result.get("status") == "success":
+                        response_text = f"Baik Bos, email sudah terkirim ke {email_to}!"
+                    else:
+                        response_text = f"Maaf Bos, gagal kirim email: {result.get('message')}"
+            except Exception as ex:
+                print(f"[EMAIL SEND ERROR] {ex}")
+
         # Simpan history
         await save_conversation(user_id, "user", transcript)
         await save_conversation(user_id, "assistant", response_text)
