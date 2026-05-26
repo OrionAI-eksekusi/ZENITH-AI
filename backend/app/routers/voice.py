@@ -40,7 +40,7 @@ async def transcribe_audio(audio: UploadFile = File(...), user_id: str = Form(de
         # Claude
         memory_ctx = await get_memory_context(user_id)
         history    = await get_history(user_id)
-        response_text = await chat(transcript, memory_ctx, history)
+        response_text = await chat(transcript, memory_ctx, history, user_id)
 
         # Simpan history
         await save_conversation(user_id, "user", transcript)
