@@ -339,7 +339,7 @@ export default function Home() {
       {sidebarOpen && (
         <>
           <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)}/>
-          <div className="sidebar">
+          <div className="sidebar" style={{overflowY:'auto'}}>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:32}}>
               <span style={{fontFamily:'JetBrains Mono,monospace',fontSize:11,letterSpacing:'0.25em',color:'rgba(255,255,255,0.8)'}}>ZENITH</span>
               <button onClick={()=>setSidebarOpen(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,0.3)',cursor:'pointer',fontSize:16}}>✕</button>
