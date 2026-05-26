@@ -199,6 +199,14 @@ export default function Home() {
         }
       }
 
+      // Detect APP command dari ZENITH (desktop only)
+      if (data.response && data.response.includes('[APP:')) {
+        const match = data.response.match(/\[APP:(.*?)\]/)
+        if (match && (window as any).electronAPI) {
+          (window as any).electronAPI.openApp(match[1])
+        }
+      }
+
       if (data.audio_b64) {
         updateState('speaking')
         try {
