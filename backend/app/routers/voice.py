@@ -66,7 +66,7 @@ async def transcribe_audio(audio: UploadFile = File(...), user_id: str = Form(de
                         conn.close()
                 pending = await asyncio.to_thread(_get_pending)
                 email_to = pending.get("pending_email_to", "")
-                email_subject = pending.get("pending_email_subject", "Re: "
+                email_subject = pending.get("pending_email_subject", "Re: ")
 
                 if email_to:
                     # Ambil draft dari history assistant terakhir
