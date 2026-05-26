@@ -43,57 +43,51 @@ async def transcribe_audio(audio: UploadFile = File(...), user_id: str = Form(de
         response_text = await chat(transcript, memory_ctx, history, user_id)
 
         # Auto kirim email kalau user konfirmasi
-        confirm_words = ["kirim", "iya kirim", "ya kirim", "kirimkan", "send", "oke kirim", "ok kirim", "sekarang", "ya sekarang", "oke sekarang", "balaskan sekarang", "ya", "iya"]
-        balas_words = ["balaskan", "balas", "reply", "balas email", "balaskan gmail"]
+        confirm_words = ["kirim", "iya kirim", "ya kirim", "kirimkan", "send", "oke kirim", "ok kirim", "kirimkan sekarang", "ya kirimkan", "iya kirimkan"]
         is_confirm = any(w in transcript.lower() for w in confirm_words)
-        is_balas = any(w in transcript.lower() for w in balas_words)
         
-        if is_balas or is_confirm:
+        if is_confirm:
             try:
-                from app.routers.gmail import get_emails_data, send_email
+                from app.routers.gmail import send_email
+                from app.memory.memory_engine import get_memory
                 import re
-                
-                # Ambil email terbaru dari Gmail untuk dapat email address pengirim
-                emails_data = await get_emails_data(user_id, max_results=5)
-                email_to = None
-                email_subject = "Re: "
-                
-                # Cari email yang relevan dari transcript
-                transcript_lower = transcript.lower()
-                for email in emails_data:
-                    sender = email.get("from", "")
-                    subject = email.get("subject", "")
-                    # Match nama pengirim dari transcript
-                    sender_name = sender.split("<")[0].strip().lower()
-                    if any(word in transcript_lower for word in sender_name.split() if len(word) > 3):
-                        # Extract email address dari field from
-                        email_match = re.search(r'<(.+?)>', sender)
-                        if email_match:
-                            email_to = email_match.group(1)
-                        else:
-                            email_to = sender
-                        email_subject = f"Re: {subject}"
-                        break
-                
+
+                # Ambil email_to dari database memory
+                from app.core.database import get_conn
+                import asyncio
+                def _get_pending():
+                    conn = get_conn()
+                    try:
+                        c = conn.cursor()
+                        c.execute("SELECT key, value FROM zenith_memory WHERE user_id = %s AND key IN ('pending_email_to', 'pending_email_subject')", (user_id,))
+                        rows = c.fetchall()
+                        return {r['key']: r['value'] for r in rows}
+                    finally:
+                        conn.close()
+                pending = await asyncio.to_thread(_get_pending)
+                email_to = pending.get("pending_email_to", "")
+                email_subject = pending.get("pending_email_subject", "Re: "
+
                 if email_to:
-                    # Ambil draft dari history assistant
-                    history_data = await get_history(user_id, limit=4)
+                    # Ambil draft dari history assistant terakhir
+                    history_data = await get_history(user_id, limit=6)
                     email_body = None
                     for h in reversed(history_data):
                         if h.get("role") == "assistant" and len(h.get("content", "")) > 30:
                             email_body = h["content"]
                             break
-                    
+
                     if email_body:
                         result = await send_email(user_id, email_to, email_subject, email_body)
                         if result.get("status") == "success":
                             response_text = f"Baik Bos, email sudah terkirim ke {email_to}!"
+                            # Hapus pending email dari memory
+                            from app.memory.memory_engine import save_memory
+                            await save_memory(user_id, "pending_email_to", "", "email")
                         else:
                             response_text = f"Maaf Bos, gagal kirim: {result.get('message')}"
                     else:
                         response_text = "Maaf Bos, tidak ada draft email yang ditemukan."
-                else:
-                    response_text = response_text  # Biarkan response Claude yang handle
             except Exception as ex:
                 print(f"[EMAIL SEND ERROR] {ex}")
 

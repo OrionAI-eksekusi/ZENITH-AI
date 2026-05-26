@@ -208,14 +208,37 @@ async def chat(message: str, memory_context: str = "", history: list = [], user_
         # Kirim/balas email jika diminta
         send_keywords = ["balas email", "balaskan", "kirim email", "send email", "reply email", "kirimkan", "tolong kirim"]
         if any(kw in message.lower() for kw in send_keywords) and user_id:
-            system += f"""\n\n[KEMAMPUAN KIRIM EMAIL - SUDAH AKTIF]
-ZENITH SUDAH TERHUBUNG ke Gmail {user_id} dan BISA kirim email sekarang.
-JANGAN bilang tidak bisa kirim atau suruh user kirim manual.
-Flow yang benar:
-1. Kalau user minta draft → buat draft dan bacakan
-2. Kalau user bilang "kirim" atau "iya" → langsung respond "Baik Bos, email sudah terkirim" 
-3. Backend akan handle pengiriman otomatis
-ZENITH BISA dan HARUS kirim email kalau user minta."""
+            # Load email terbaru untuk context
+            try:
+                from app.routers.gmail import get_emails_data
+                import re
+                emails_data = await get_emails_data(user_id, max_results=5)
+                email_to = None
+                email_subject = ""
+                msg_lower = message.lower()
+                for email in emails_data:
+                    sender = email.get("from", "")
+                    subject = email.get("subject", "")
+                    sender_name = re.sub(r'<.*?>', '', sender).strip().lower()
+                    if any(word in msg_lower for word in sender_name.split() if len(word) > 3):
+                        email_match = re.search(r'<(.+?)>', sender)
+                        email_to = email_match.group(1) if email_match else sender
+                        email_subject = f"Re: {subject}"
+                        break
+                
+                if email_to:
+                    # Simpan email_to ke memory sementara
+                    from app.memory.memory_engine import save_memory
+                    await save_memory(user_id, "pending_email_to", email_to, "email")
+                    await save_memory(user_id, "pending_email_subject", email_subject, "email")
+                    
+                    system += f"""\n\n[DRAFT EMAIL]
+Buat draft balasan untuk email dari: {email_to}
+Subject: {email_subject}
+Setelah draft selesai, tanya user: "Apakah saya kirimkan sekarang Bos?"
+JANGAN kirim dulu sebelum user konfirmasi."""
+            except Exception as ex:
+                print(f"[EMAIL DRAFT ERROR] {ex}")
         if note_context:
             system += f"\n\n{note_context}"
         
@@ -262,14 +285,37 @@ async def chat_stream(message: str, memory_context: str = "", history: list = []
         # Kirim/balas email jika diminta
         send_keywords = ["balas email", "balaskan", "kirim email", "send email", "reply email", "kirimkan", "tolong kirim"]
         if any(kw in message.lower() for kw in send_keywords) and user_id:
-            system += f"""\n\n[KEMAMPUAN KIRIM EMAIL - SUDAH AKTIF]
-ZENITH SUDAH TERHUBUNG ke Gmail {user_id} dan BISA kirim email sekarang.
-JANGAN bilang tidak bisa kirim atau suruh user kirim manual.
-Flow yang benar:
-1. Kalau user minta draft → buat draft dan bacakan
-2. Kalau user bilang "kirim" atau "iya" → langsung respond "Baik Bos, email sudah terkirim" 
-3. Backend akan handle pengiriman otomatis
-ZENITH BISA dan HARUS kirim email kalau user minta."""
+            # Load email terbaru untuk context
+            try:
+                from app.routers.gmail import get_emails_data
+                import re
+                emails_data = await get_emails_data(user_id, max_results=5)
+                email_to = None
+                email_subject = ""
+                msg_lower = message.lower()
+                for email in emails_data:
+                    sender = email.get("from", "")
+                    subject = email.get("subject", "")
+                    sender_name = re.sub(r'<.*?>', '', sender).strip().lower()
+                    if any(word in msg_lower for word in sender_name.split() if len(word) > 3):
+                        email_match = re.search(r'<(.+?)>', sender)
+                        email_to = email_match.group(1) if email_match else sender
+                        email_subject = f"Re: {subject}"
+                        break
+                
+                if email_to:
+                    # Simpan email_to ke memory sementara
+                    from app.memory.memory_engine import save_memory
+                    await save_memory(user_id, "pending_email_to", email_to, "email")
+                    await save_memory(user_id, "pending_email_subject", email_subject, "email")
+                    
+                    system += f"""\n\n[DRAFT EMAIL]
+Buat draft balasan untuk email dari: {email_to}
+Subject: {email_subject}
+Setelah draft selesai, tanya user: "Apakah saya kirimkan sekarang Bos?"
+JANGAN kirim dulu sebelum user konfirmasi."""
+            except Exception as ex:
+                print(f"[EMAIL DRAFT ERROR] {ex}")
         if note_context:
             system += f"\n\n{note_context}"
         
