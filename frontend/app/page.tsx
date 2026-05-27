@@ -244,8 +244,9 @@ export default function Home() {
         const match = data.response.match(/\[OPEN:(.*?)\]/)
         if (match) {
           const url = match[1]
-          setWebviewUrl(url)
           setOrbMini(true)
+          window.open(url, '_blank')
+          setTimeout(() => setOrbMini(false), 3000)
         }
       }
 
@@ -555,7 +556,7 @@ export default function Home() {
               <div style={{fontSize:10,color:'rgba(255,255,255,0.4)',letterSpacing:'0.1em',fontFamily:'JetBrains Mono,monospace'}}>{webviewUrl}</div>
               <button onClick={()=>{setWebviewUrl('');setOrbMini(false)}} style={{background:'rgba(255,77,77,0.1)',border:'1px solid rgba(255,77,77,0.2)',borderRadius:6,color:'rgba(255,77,77,0.7)',fontFamily:'JetBrains Mono,monospace',fontSize:9,letterSpacing:'0.1em',cursor:'pointer',padding:'4px 12px'}}>✕ TUTUP</button>
             </div>
-            <iframe src={webviewUrl} style={{flex:1,border:'none',width:'100%',height:'100%'}} allow="microphone; camera"/>
+            <iframe src={webviewUrl} style={{flex:1,border:'none',width:'100%',height:'100%'}} allow="microphone; camera" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"/>
           </div>
         )}
 
