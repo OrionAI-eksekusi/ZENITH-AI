@@ -510,7 +510,7 @@ export default function Home() {
             <button onClick={async () => {
               const pw = prompt('Masukkan password baru (min 6 karakter):')
               if (!pw || pw.length < 6) { alert('Password minimal 6 karakter'); return }
-              const res = await fetch(`${BACKEND}/auth/set-password`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:getUserId(),password:pw})})
+              const res = await fetch(`${BACKEND}/auth/set-password`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:getUserId()||'962600',password:pw})})
               const data = await res.json()
               alert(data.message)
             }} style={{width:'100%',marginBottom:8,padding:'10px',background:'rgba(255,200,0,0.06)',border:'1px solid rgba(255,200,0,0.15)',borderRadius:8,color:'rgba(255,200,0,0.7)',fontFamily:'JetBrains Mono,monospace',fontSize:9,letterSpacing:'0.12em',cursor:'pointer'}}>
