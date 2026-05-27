@@ -39,7 +39,6 @@ export default function Home() {
   const stateRef = useRef<State>('idle')
   const clapRef = useRef<number>(0)
   const clapTimerRef = useRef<any>(null)
-  const analyserRef = useRef<AnalyserNode | null>(null)
   const clapDetectRef = useRef<boolean>(false)
   const activeRef = useRef(false)
   const streamRef = useRef<MediaStream|null>(null)
