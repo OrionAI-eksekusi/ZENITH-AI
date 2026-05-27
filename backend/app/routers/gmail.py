@@ -117,7 +117,8 @@ async def gmail_callback(code: str, state: str):
         flow.fetch_token(code=code)
         creds = flow.credentials
 
-        if state == "google_login":
+        is_desktop = "desktop" in state
+        if "google_login" in state:
             async with httpx.AsyncClient() as http:
                 resp = await http.get(
                     "https://www.googleapis.com/oauth2/v2/userinfo",
@@ -143,6 +144,10 @@ async def gmail_callback(code: str, state: str):
                 "exp": datetime.utcnow() + timedelta(days=30)
             }, JWT_SECRET, algorithm="HS256")
 
+            if is_desktop:
+                return RedirectResponse(
+                    f"zenith://auth?token={token}&user_id={user_id}&name={name}&email={email}"
+                )
             return RedirectResponse(
                 f"{FRONTEND_URL}/auth/callback?token={token}&user_id={user_id}&name={name}&email={email}"
             )

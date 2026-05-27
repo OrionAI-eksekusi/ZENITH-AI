@@ -15,7 +15,7 @@ export default function Login() {
 
   const googleLogin = () => {
     if ((window as any).electronAPI) {
-      (window as any).electronAPI.openURL('https://zenith-ai-gules.vercel.app/login')
+      (window as any).electronAPI.openURL(`${BACKEND}/gmail/login?desktop=true`)
     } else {
       window.location.href = `${BACKEND}/gmail/login`
     }
