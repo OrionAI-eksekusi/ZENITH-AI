@@ -66,12 +66,16 @@ export default function Home() {
       const data = new Uint8Array(analyser.frequencyBinCount)
       let lastClap = 0
 
+      let prevAvg = 0
       const detect = () => {
         if (!clapDetectRef.current) return
         analyser.getByteFrequencyData(data)
         const avg = data.reduce((a,b) => a+b, 0) / data.length
         const now = Date.now()
-        if (avg > 80 && now - lastClap > 200) {
+        // Clap = spike tiba-tiba naik > 40 dari frame sebelumnya
+        const isClap = avg > 90 && (avg - prevAvg) > 40
+        prevAvg = avg
+        if (isClap && now - lastClap > 250) {
           lastClap = now
           clapRef.current += 1
           if (clapRef.current >= 2) {
