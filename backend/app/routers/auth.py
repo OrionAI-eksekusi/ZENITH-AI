@@ -132,6 +132,75 @@ async def set_password(request: Request):
     result = await asyncio.to_thread(_set_pw)
     return JSONResponse(result)
 
+@router.post("/device-code")
+async def create_device_code(request: Request):
+    import random, string, asyncio
+    code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+    def _save():
+        from app.core.database import get_conn
+        conn = get_conn()
+        try:
+            c = conn.cursor()
+            c.execute("""INSERT INTO zenith_memory (user_id, key, value, category, updated_at)
+                VALUES ('pending', %s, 'waiting', 'device', NOW())
+                ON CONFLICT (user_id, key) DO UPDATE SET value='waiting', updated_at=NOW()
+            """, (f'device_{code}',))
+            conn.commit()
+        finally:
+            conn.close()
+    await asyncio.to_thread(_save)
+    return JSONResponse({"status": "success", "code": code})
+
+@router.get("/device-poll/{code}")
+async def poll_device_code(code: str):
+    import asyncio
+    def _get():
+        from app.core.database import get_conn
+        conn = get_conn()
+        try:
+            c = conn.cursor()
+            c.execute("SELECT value FROM zenith_memory WHERE key = %s", (f'device_{code}',))
+            r = c.fetchone()
+            return r['value'] if r else None
+        finally:
+            conn.close()
+    value = await asyncio.to_thread(_get)
+    if value and value != 'waiting':
+        import json as json_lib
+        try:
+            data = json_lib.loads(value)
+            return JSONResponse({"status": "success", "token": data.get("token"), "user": data.get("user")})
+        except:
+            pass
+    return JSONResponse({"status": "waiting"})
+
+@router.post("/device-activate")
+async def device_activate(request: Request):
+    import asyncio, json as json_lib
+    data = await request.json()
+    code = data.get("code", "")
+    token = data.get("token", "")
+    user = data.get("user", {})
+    if not code or not token:
+        return JSONResponse({"status": "error", "message": "Code dan token wajib"})
+    def _activate():
+        from app.core.database import get_conn
+        conn = get_conn()
+        try:
+            c = conn.cursor()
+            value = json_lib.dumps({"token": token, "user": user})
+            c.execute("""UPDATE zenith_memory SET value=%s, updated_at=NOW()
+                WHERE key=%s AND value='waiting'
+            """, (value, f'device_{code}'))
+            conn.commit()
+            return c.rowcount > 0
+        finally:
+            conn.close()
+    success = await asyncio.to_thread(_activate)
+    if success:
+        return JSONResponse({"status": "success"})
+    return JSONResponse({"status": "error", "message": "Kode tidak valid"})
+
 @router.get("/me")
 async def me(request: Request):
     token = request.headers.get("Authorization", "").replace("Bearer ", "")
