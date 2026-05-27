@@ -381,7 +381,7 @@ export default function Home() {
     }
   }
 
-  const logout = () => { localStorage.removeItem('zenith_token'); localStorage.removeItem('zenith_user'); window.location.href = '/login' }
+  const logout = () => { localStorage.removeItem('zenith_token'); localStorage.removeItem('zenith_user'); window.location.reload() }
 
   const getGreeting = () => {
     const h = new Date().getHours()
