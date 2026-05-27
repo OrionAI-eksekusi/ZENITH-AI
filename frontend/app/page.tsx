@@ -438,6 +438,9 @@ export default function Home() {
                 )}
               </div>
             )}
+            <button onClick={() => {setSidebarOpen(false); window.location.href='/download'}} style={{width:'100%',marginBottom:8,padding:'10px',background:'rgba(0,229,255,0.06)',border:'1px solid rgba(0,229,255,0.15)',borderRadius:8,color:'rgba(0,229,255,0.7)',fontFamily:'JetBrains Mono,monospace',fontSize:9,letterSpacing:'0.12em',cursor:'pointer'}}>
+              ↓ DOWNLOAD APP
+            </button>
             <button onClick={() => {setSidebarOpen(false); window.location.href='/upgrade'}} style={{width:'100%',marginBottom:8,padding:'10px',background:'linear-gradient(135deg,rgba(77,123,255,0.08),rgba(139,92,246,0.08))',border:'1px solid rgba(77,123,255,0.2)',borderRadius:8,color:'#4c7bff',fontFamily:'JetBrains Mono,monospace',fontSize:9,letterSpacing:'0.12em',cursor:'pointer'}}>
               ⬆ UPGRADE PREMIUM
             </button>
