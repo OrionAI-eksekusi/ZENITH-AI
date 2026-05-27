@@ -630,7 +630,7 @@ export default function Home() {
 
           {/* ORB */}
           {orbMini && <div style={{position:'fixed',bottom:8,right:4,zIndex:101,textAlign:'center',fontSize:'7px',color:'rgba(77,123,255,0.8)',fontFamily:'JetBrains Mono,monospace',letterSpacing:'0.1em',width:96}}>KETUK UNTUK BUKA</div>}
-          <div onClick={() => { if(orbMini && webviewUrl) { if((window as any).electronAPI) { (window as any).electronAPI.openURL(webviewUrl) } else { window.open(webviewUrl, '_blank') } setOrbMini(false); setWebviewUrl('') } }} style={{position: orbMini ? 'fixed' : 'relative', bottom: orbMini ? 24 : 'auto', right: orbMini ? 24 : 'auto', width: orbMini ? 80 : 220, height: orbMini ? 80 : 220, display:'flex',alignItems:'center',justifyContent:'center',marginBottom: orbMini ? 0 : 40, zIndex: orbMini ? 100 : 'auto', transition:'all 0.5s cubic-bezier(0.4,0,0.2,1)', cursor: orbMini ? 'pointer' : 'default'}}>
+          <div onClick={() => { if(orbMini && webviewUrl) { window.open(webviewUrl, '_blank'); setOrbMini(false); setWebviewUrl('') } }} style={{position: orbMini ? 'fixed' : 'relative', bottom: orbMini ? 24 : 'auto', right: orbMini ? 24 : 'auto', width: orbMini ? 80 : 220, height: orbMini ? 80 : 220, display:'flex',alignItems:'center',justifyContent:'center',marginBottom: orbMini ? 0 : 40, zIndex: orbMini ? 100 : 'auto', transition:'all 0.5s cubic-bezier(0.4,0,0.2,1)', cursor: orbMini ? 'pointer' : 'default'}}>
             {state==='listening'&&[0,0.5,1].map((d,i)=>(
               <div key={i} style={{position:'absolute',width:200,height:200,borderRadius:'50%',border:'1px solid rgba(77,123,255,0.15)',animation:`ripple 2.5s ease-out ${d}s infinite`}}/>
             ))}
