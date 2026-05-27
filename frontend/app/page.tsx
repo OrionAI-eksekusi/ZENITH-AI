@@ -244,9 +244,8 @@ export default function Home() {
         const match = data.response.match(/\[OPEN:(.*?)\]/)
         if (match) {
           const url = match[1]
+          setWebviewUrl(url)
           setOrbMini(true)
-          window.open(url, '_blank')
-          setTimeout(() => setOrbMini(false), 3000)
         }
       }
 
@@ -566,7 +565,7 @@ export default function Home() {
           <div style={{position:'absolute',width:500,height:500,borderRadius:'50%',background:'radial-gradient(circle,rgba(77,123,255,0.03) 0%,transparent 70%)',pointerEvents:'none'}}/>
 
           {/* ORB */}
-          <div style={{position: orbMini ? 'fixed' : 'relative', bottom: orbMini ? 24 : 'auto', right: orbMini ? 24 : 'auto', width: orbMini ? 80 : 220, height: orbMini ? 80 : 220, display:'flex',alignItems:'center',justifyContent:'center',marginBottom: orbMini ? 0 : 40, zIndex: orbMini ? 100 : 'auto', transition:'all 0.5s cubic-bezier(0.4,0,0.2,1)'}}>
+          <div onClick={() => { if(orbMini && webviewUrl) { window.open(webviewUrl, '_blank'); setOrbMini(false); setWebviewUrl('') } }} style={{position: orbMini ? 'fixed' : 'relative', bottom: orbMini ? 24 : 'auto', right: orbMini ? 24 : 'auto', width: orbMini ? 80 : 220, height: orbMini ? 80 : 220, display:'flex',alignItems:'center',justifyContent:'center',marginBottom: orbMini ? 0 : 40, zIndex: orbMini ? 100 : 'auto', transition:'all 0.5s cubic-bezier(0.4,0,0.2,1)', cursor: orbMini ? 'pointer' : 'default'}}>
             {state==='listening'&&[0,0.5,1].map((d,i)=>(
               <div key={i} style={{position:'absolute',width:200,height:200,borderRadius:'50%',border:'1px solid rgba(77,123,255,0.15)',animation:`ripple 2.5s ease-out ${d}s infinite`}}/>
             ))}
