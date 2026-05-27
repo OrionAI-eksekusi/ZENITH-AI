@@ -52,6 +52,48 @@ export default function Home() {
 
   const updateState = (s: State) => { setState(s); stateRef.current = s }
 
+  // Clap detection untuk desktop — tepuk tangan 2x balik ke ZENITH
+  useEffect(() => {
+    if (typeof window === 'undefined' || !navigator.userAgent.includes('Electron')) return
+    let clapCount = 0
+    let lastClap = 0
+    let clapTimer: any = null
+    let prevAvg = 0
+
+    navigator.mediaDevices.getUserMedia({audio: true}).then(stream => {
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)()
+      const analyser = audioCtx.createAnalyser()
+      const source = audioCtx.createMediaStreamSource(stream)
+      source.connect(analyser)
+      analyser.fftSize = 256
+      const data = new Uint8Array(analyser.frequencyBinCount)
+
+      const detect = () => {
+        analyser.getByteFrequencyData(data)
+        const avg = data.reduce((a,b) => a+b, 0) / data.length
+        const now = Date.now()
+        const isClap = avg > 90 && (avg - prevAvg) > 40
+        prevAvg = avg
+
+        if (isClap && now - lastClap > 250) {
+          lastClap = now
+          clapCount++
+          if (clapCount >= 2) {
+            clapCount = 0
+            try {
+              const { ipcRenderer } = (window as any).require('electron')
+              ipcRenderer.send('clap-detected')
+            } catch {}
+          }
+          clearTimeout(clapTimer)
+          clapTimer = setTimeout(() => { clapCount = 0 }, 1000)
+        }
+        requestAnimationFrame(detect)
+      }
+      detect()
+    }).catch(() => {})
+  }, [])
+
   // Clap detection — tepuk tangan 2x untuk tutup webview
   const startClapDetection = () => {
     if (clapDetectRef.current) return
