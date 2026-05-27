@@ -107,6 +107,31 @@ async def login(request: Request):
     
     return JSONResponse({"status": "success", "token": token, "user": result})
 
+@router.post("/set-password")
+async def set_password(request: Request):
+    data = await request.json()
+    user_id = data.get("user_id", "")
+    new_password = data.get("password", "")
+    if not user_id or not new_password:
+        return JSONResponse({"status": "error", "message": "user_id dan password wajib diisi"})
+    if len(new_password) < 6:
+        return JSONResponse({"status": "error", "message": "Password minimal 6 karakter"})
+    
+    import asyncio
+    def _set_pw():
+        from app.core.database import get_conn
+        conn = get_conn()
+        try:
+            c = conn.cursor()
+            hashed = hash_password(new_password)
+            c.execute("UPDATE zenith_users SET password_hash = %s WHERE user_id = %s", (hashed, user_id))
+            conn.commit()
+            return {"status": "success", "message": "Password berhasil diset"}
+        finally:
+            conn.close()
+    result = await asyncio.to_thread(_set_pw)
+    return JSONResponse(result)
+
 @router.get("/me")
 async def me(request: Request):
     token = request.headers.get("Authorization", "").replace("Bearer ", "")
