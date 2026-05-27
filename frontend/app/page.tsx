@@ -248,8 +248,9 @@ export default function Home() {
         const match = data.response.match(/\[OPEN:(.*?)\]/)
         if (match) {
           const url = match[1]
-          if (typeof window !== 'undefined' && (window as any).electronAPI) {
-            (window as any).electronAPI.openURL(url)
+          if (typeof window !== 'undefined' && navigator.userAgent.includes('Electron')) {
+            fetch(`/api/open?url=${encodeURIComponent(url)}`).catch(()=>{})
+            window.open(url, '_blank')
           } else {
             setWebviewUrl(url)
             setOrbMini(true)
