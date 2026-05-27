@@ -14,7 +14,11 @@ export default function Login() {
   const [error, setError] = useState('')
 
   const googleLogin = () => {
-    window.location.href = `${BACKEND}/gmail/login`
+    if ((window as any).electronAPI) {
+      (window as any).electronAPI.openURL(`${BACKEND}/gmail/login`)
+    } else {
+      window.location.href = `${BACKEND}/gmail/login`
+    }
   }
 
   const submit = async () => {
