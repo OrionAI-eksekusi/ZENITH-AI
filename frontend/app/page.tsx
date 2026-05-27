@@ -615,7 +615,11 @@ export default function Home() {
               <div style={{fontSize:10,color:'rgba(255,255,255,0.4)',letterSpacing:'0.1em',fontFamily:'JetBrains Mono,monospace'}}>{webviewUrl}</div>
               <button onClick={()=>{setWebviewUrl('');setOrbMini(false)}} style={{background:'rgba(255,77,77,0.1)',border:'1px solid rgba(255,77,77,0.2)',borderRadius:6,color:'rgba(255,77,77,0.7)',fontFamily:'JetBrains Mono,monospace',fontSize:9,letterSpacing:'0.1em',cursor:'pointer',padding:'4px 12px'}}>✕ TUTUP</button>
             </div>
-              <iframe src={webviewUrl} style={{flex:1,border:'none',width:'100%',height:'100%'}} allow="microphone; camera" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation"/>
+              {typeof window !== 'undefined' && navigator.userAgent.includes('Electron') ? (
+                <webview src={webviewUrl} style={{flex:1,width:'100%',height:'100%'}} allowpopups useragent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"></webview>
+              ) : (
+                <iframe src={webviewUrl} style={{flex:1,border:'none',width:'100%',height:'100%'}} allow="microphone; camera" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation"/>
+              )}
           </div>
         )}
 
