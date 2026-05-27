@@ -248,11 +248,9 @@ export default function Home() {
         const match = data.response.match(/\[OPEN:(.*?)\]/)
         if (match) {
           const url = match[1]
-          if ((window as any).electronAPI) {
-            // Di Electron — buka window baru langsung
+          if (typeof window !== 'undefined' && (window as any).electronAPI) {
             (window as any).electronAPI.openURL(url)
           } else {
-            // Di web — orb mini + klik untuk buka
             setWebviewUrl(url)
             setOrbMini(true)
           }
