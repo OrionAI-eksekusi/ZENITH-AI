@@ -33,8 +33,14 @@ export default function Home() {
   const [presenceMsg, setPresenceMsg] = useState('')
   const [memories, setMemories] = useState<any[]>([])
   const [chatHistory, setChatHistory] = useState<string[]>([])
+  const [webviewUrl, setWebviewUrl] = useState('')
+  const [orbMini, setOrbMini] = useState(false)
 
   const stateRef = useRef<State>('idle')
+  const clapRef = useRef<number>(0)
+  const clapTimerRef = useRef<any>(null)
+  const analyserRef = useRef<AnalyserNode | null>(null)
+  const clapDetectRef = useRef<boolean>(false)
   const activeRef = useRef(false)
   const streamRef = useRef<MediaStream|null>(null)
   const contextRef = useRef<AudioContext|null>(null)
@@ -46,6 +52,50 @@ export default function Home() {
   const waveAnimRef = useRef<any>(null)
 
   const updateState = (s: State) => { setState(s); stateRef.current = s }
+
+  // Clap detection — tepuk tangan 2x untuk tutup webview
+  const startClapDetection = () => {
+    if (clapDetectRef.current) return
+    clapDetectRef.current = true
+    navigator.mediaDevices.getUserMedia({audio: true}).then(stream => {
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)()
+      const analyser = audioCtx.createAnalyser()
+      const source = audioCtx.createMediaStreamSource(stream)
+      source.connect(analyser)
+      analyser.fftSize = 256
+      analyserRef.current = analyser
+      const data = new Uint8Array(analyser.frequencyBinCount)
+      let lastClap = 0
+
+      const detect = () => {
+        if (!clapDetectRef.current) return
+        analyser.getByteFrequencyData(data)
+        const avg = data.reduce((a,b) => a+b, 0) / data.length
+        const now = Date.now()
+        if (avg > 80 && now - lastClap > 200) {
+          lastClap = now
+          clapRef.current += 1
+          if (clapRef.current >= 2) {
+            clapRef.current = 0
+            setWebviewUrl('')
+            setOrbMini(false)
+            clapDetectRef.current = false
+            stream.getTracks().forEach(t => t.stop())
+            return
+          }
+          clearTimeout(clapTimerRef.current)
+          clapTimerRef.current = setTimeout(() => { clapRef.current = 0 }, 1000)
+        }
+        requestAnimationFrame(detect)
+      }
+      detect()
+    }).catch(() => {})
+  }
+
+  useEffect(() => {
+    if (orbMini) startClapDetection()
+    else { clapDetectRef.current = false; clapRef.current = 0 }
+  }, [orbMini])
   
   const showError = (msg: string) => {
     setErrorMsg(msg)
@@ -195,7 +245,8 @@ export default function Home() {
         const match = data.response.match(/\[OPEN:(.*?)\]/)
         if (match) {
           const url = match[1]
-          window.open(url, '_blank')
+          setWebviewUrl(url)
+          setOrbMini(true)
         }
       }
 
@@ -498,13 +549,24 @@ export default function Home() {
         </div>
 
         {/* CENTER */}
+        {/* Webview Panel */}
+        {webviewUrl && orbMini && (
+          <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,zIndex:90,background:'#050814',display:'flex',flexDirection:'column'}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'12px 20px',borderBottom:'1px solid rgba(77,123,255,0.1)',background:'#080d1a'}}>
+              <div style={{fontSize:10,color:'rgba(255,255,255,0.4)',letterSpacing:'0.1em',fontFamily:'JetBrains Mono,monospace'}}>{webviewUrl}</div>
+              <button onClick={()=>{setWebviewUrl('');setOrbMini(false)}} style={{background:'rgba(255,77,77,0.1)',border:'1px solid rgba(255,77,77,0.2)',borderRadius:6,color:'rgba(255,77,77,0.7)',fontFamily:'JetBrains Mono,monospace',fontSize:9,letterSpacing:'0.1em',cursor:'pointer',padding:'4px 12px'}}>✕ TUTUP</button>
+            </div>
+            <iframe src={webviewUrl} style={{flex:1,border:'none',width:'100%',height:'100%'}} allow="microphone; camera"/>
+          </div>
+        )}
+
         <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',position:'relative',overflow:'hidden'}}>
           
           {/* Bg glow */}
           <div style={{position:'absolute',width:500,height:500,borderRadius:'50%',background:'radial-gradient(circle,rgba(77,123,255,0.03) 0%,transparent 70%)',pointerEvents:'none'}}/>
 
           {/* ORB */}
-          <div style={{position:'relative',width:220,height:220,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:40}}>
+          <div style={{position: orbMini ? 'fixed' : 'relative', bottom: orbMini ? 24 : 'auto', right: orbMini ? 24 : 'auto', width: orbMini ? 80 : 220, height: orbMini ? 80 : 220, display:'flex',alignItems:'center',justifyContent:'center',marginBottom: orbMini ? 0 : 40, zIndex: orbMini ? 100 : 'auto', transition:'all 0.5s cubic-bezier(0.4,0,0.2,1)'}}>
             {state==='listening'&&[0,0.5,1].map((d,i)=>(
               <div key={i} style={{position:'absolute',width:200,height:200,borderRadius:'50%',border:'1px solid rgba(77,123,255,0.15)',animation:`ripple 2.5s ease-out ${d}s infinite`}}/>
             ))}
