@@ -237,31 +237,6 @@ async def send_email(user_id: str, to: str, subject: str, body: str) -> dict:
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
-async def send_email(user_id: str, to: str, subject: str, body: str) -> dict:
-    """Kirim email dari Gmail user"""
-    creds_data = _get_token(user_id)
-    if not creds_data:
-        return {"status": "error", "message": "Gmail belum terhubung"}
-    try:
-        import base64
-        from email.mime.text import MIMEText
-        creds = Credentials(
-            token=creds_data["token"],
-            refresh_token=creds_data.get("refresh_token"),
-            token_uri=creds_data.get("token_uri"),
-            client_id=creds_data.get("client_id"),
-            client_secret=creds_data.get("client_secret"),
-        )
-        service = build("gmail", "v1", credentials=creds)
-        message = MIMEText(body)
-        message["to"] = to
-        message["subject"] = subject
-        raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
-        service.users().messages().send(userId="me", body={"raw": raw}).execute()
-        return {"status": "success", "message": f"Email terkirim ke {to}"}
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
-
 async def get_emails_data(user_id: str, max_results: int = 5) -> list:
     creds_data = _get_token(user_id)
     if not creds_data:

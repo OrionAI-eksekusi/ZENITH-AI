@@ -279,15 +279,98 @@ JANGAN kirim dulu sebelum user konfirmasi."""
         print(f"[ZENITH AI ERROR] {e}")
         return "Maaf Bos, saya sedang ada gangguan. Coba lagi ya."
 
-async def chat_stream(message: str, memory_context: str = "", history: list = []):
+async def chat_stream(message: str, memory_context: str = "", history: list = [], user_id: str = ""):
     try:
         client = get_client()
-        
+
         search_context = ""
         if needs_search(message):
             from app.tools.web_search import search_web
             search_context = await search_web(message)
-        
+
+        msg_lower_check = message.lower()
+
+        note_context = ""
+        note_keywords = ["catat", "catatan", "simpan", "ingat ini", "note", "tulis"]
+        recall_keywords = ["catatan gue", "catatan saya", "catatan apa", "apa catatan", "lihat catatan"]
+        if any(kw in msg_lower_check for kw in recall_keywords) and user_id:
+            try:
+                from app.routers.notes import _get_notes
+                notes = _get_notes(user_id, limit=5)
+                if notes:
+                    lines = ["[CATATAN USER]"]
+                    for n in notes:
+                        lines.append(f"- {n['content'][:150]} ({n['created_at'][:10]})")
+                    note_context = "\n".join(lines)
+                else:
+                    note_context = "[USER BELUM PUNYA CATATAN]"
+            except:
+                pass
+        elif any(kw in msg_lower_check for kw in note_keywords) and user_id:
+            try:
+                from app.routers.notes import _save_note
+                _save_note(user_id, "Catatan ZENITH", message)
+                note_context = "[CATATAN BERHASIL DISIMPAN KE DATABASE]"
+            except:
+                pass
+
+        browser_context = ""
+        browser_keywords = ["scrape", "buka website", "buka url", "cek website", "ambil data dari", "buka halaman", "buka youtube", "buka tokopedia", "buka google", "buka", "cek halaman", "lihat website", "baca website"]
+        if any(kw in msg_lower_check for kw in browser_keywords) and user_id:
+            try:
+                from app.routers.browser import scrape_url_playwright as scrape_url, search_web
+                import re
+                url_match = re.search(r'https?://[^\s]+', message)
+                domain_match = re.search(r'([a-zA-Z0-9-]+\.(com|id|net|org|io|co\.id))', message)
+                if url_match:
+                    result = await scrape_url(url_match.group())
+                    if result.get("status") == "success":
+                        browser_context = f"[KONTEN WEBSITE: {result['title']}]\n{result['content'][:2000]}"
+                elif domain_match:
+                    url = f"https://{domain_match.group()}"
+                    result = await scrape_url(url)
+                    if result.get("status") == "success":
+                        browser_context = f"[KONTEN WEBSITE: {result['title']}]\n{result['content'][:2000]}"
+                else:
+                    result = await search_web(message)
+                    if result.get("results"):
+                        lines = ["[HASIL BROWSER SEARCH]"]
+                        for r in result["results"][:3]:
+                            lines.append(f"- {r['title']}: {r['snippet']}")
+                        browser_context = "\n".join(lines)
+            except Exception as ex:
+                print(f"[BROWSER CTX ERROR] {ex}")
+
+        calendar_context = ""
+        calendar_keywords = ["jadwal", "calendar", "kalender", "meeting", "event", "agenda", "besok", "minggu ini", "hari ini"]
+        if any(kw in msg_lower_check for kw in calendar_keywords) and user_id:
+            try:
+                from app.routers.calendar import get_events_data
+                events = await get_events_data(user_id, days=7)
+                if events:
+                    lines = ["[JADWAL USER 7 HARI KE DEPAN]"]
+                    for e in events:
+                        lines.append(f"- {e['title']} | {e['start']} | {e.get('location','')}")
+                    calendar_context = "\n".join(lines)
+            except Exception as ex:
+                print(f"[CALENDAR CTX ERROR] {ex}")
+
+        email_context = ""
+        if any(kw in msg_lower_check for kw in EMAIL_KEYWORDS) and user_id:
+            try:
+                from app.routers.gmail import get_emails_data
+                emails = await get_emails_data(user_id)
+                if emails:
+                    lines = ["[EMAIL TERBARU USER]"]
+                    for e in emails[:5]:
+                        lines.append(f"From: {e['from']}")
+                        lines.append(f"Subject: {e['subject']}")
+                        lines.append(f"Preview: {e['snippet'][:100]}")
+                        lines.append("---")
+                    email_context = "\n".join(lines)
+            except:
+                pass
+
         system = ZENITH_SYSTEM
         if memory_context:
             system += f"\n\n{memory_context}"

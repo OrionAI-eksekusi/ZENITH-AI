@@ -36,7 +36,6 @@ def _register_user(email: str, password: str, name: str) -> dict:
         c.execute("SELECT id FROM zenith_users WHERE email = %s", (email,))
         if c.fetchone():
             return {"error": "Email sudah terdaftar"}
-        user_id = str(random.randint(100000, 999999))
         hashed = hash_password(password)
         user_id = str(random.randint(100000, 999999))
         c.execute("""

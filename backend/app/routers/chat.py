@@ -79,7 +79,7 @@ async def chat_stream_endpoint(request: Request):
 
     async def generate():
         full_response = ""
-        async for chunk in chat_stream(message, memory_ctx, history):
+        async for chunk in chat_stream(message, memory_ctx, history, user_id):
             full_response += chunk
             yield f"data: {json.dumps({'chunk': chunk})}\n\n"
 

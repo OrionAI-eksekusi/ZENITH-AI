@@ -543,16 +543,18 @@ export default function Home() {
             <button onClick={() => {setSidebarOpen(false); window.location.href='/upgrade'}} style={{width:'100%',marginBottom:8,padding:'10px',background:'linear-gradient(135deg,rgba(77,123,255,0.08),rgba(139,92,246,0.08))',border:'1px solid rgba(77,123,255,0.2)',borderRadius:8,color:'#4c7bff',fontFamily:'JetBrains Mono,monospace',fontSize:9,letterSpacing:'0.12em',cursor:'pointer'}}>
               ⬆ UPGRADE PREMIUM
             </button>
-            <button onClick={logout} style={{width:'100%',padding:'10px',background:'rgba(239,68,68,0.06)',border:'1px solid rgba(239,68,68,0.12)',borderRadius:8,color:'rgba(239,68,68,0.6)',fontFamily:'JetBrains Mono,monospace',fontSize:9,letterSpacing:'0.12em',cursor:'pointer'}}>
-              SET PASSWORD
-            </button>
             <button onClick={async () => {
               const pw = prompt('Masukkan password baru (min 6 karakter):')
               if (!pw || pw.length < 6) { alert('Password minimal 6 karakter'); return }
-              const res = await fetch(`${BACKEND}/auth/set-password`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:getUserId()||'962600',password:pw})})
+              const uid = getUserId()
+              if (!uid) { alert('Sesi tidak valid, silakan login ulang'); return }
+              const res = await fetch(`${BACKEND}/auth/set-password`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:uid,password:pw})})
               const data = await res.json()
               alert(data.message)
             }} style={{width:'100%',marginBottom:8,padding:'10px',background:'rgba(255,200,0,0.06)',border:'1px solid rgba(255,200,0,0.15)',borderRadius:8,color:'rgba(255,200,0,0.7)',fontFamily:'JetBrains Mono,monospace',fontSize:9,letterSpacing:'0.12em',cursor:'pointer'}}>
+              SET PASSWORD
+            </button>
+            <button onClick={logout} style={{width:'100%',padding:'10px',background:'rgba(239,68,68,0.06)',border:'1px solid rgba(239,68,68,0.12)',borderRadius:8,color:'rgba(239,68,68,0.6)',fontFamily:'JetBrains Mono,monospace',fontSize:9,letterSpacing:'0.12em',cursor:'pointer'}}>
               KELUAR
             </button>
           </div>
