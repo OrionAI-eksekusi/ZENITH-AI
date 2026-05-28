@@ -603,7 +603,7 @@ export default function Home() {
 
         {/* CENTER */}
         {/* Webview Panel */}
-        {webviewUrl && orbMini && (
+        {webviewUrl && (
           <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,zIndex:90,background:'#050814',display:'flex',flexDirection:'column'}}>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'12px 20px',borderBottom:'1px solid rgba(77,123,255,0.1)',background:'#080d1a'}}>
               <div style={{fontSize:10,color:'rgba(255,255,255,0.4)',letterSpacing:'0.1em',fontFamily:'JetBrains Mono,monospace'}}>{webviewUrl}</div>
