@@ -4,22 +4,33 @@ ZENITH AI — Auth Router
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 from app.core.database import get_conn
+from app.core.security import JWT_SECRET, JWT_ALGORITHM, get_current_user, require_self
 import jwt
-import os
 import uuid
 import hashlib
 import random
 from datetime import datetime, timedelta
+from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError, VerificationError
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-JWT_SECRET = os.getenv("JWT_SECRET", "zenith-secret-2026")
+_ph = PasswordHasher()
+
 
 def hash_password(password: str) -> str:
-    return hashlib.sha256(password.encode()).hexdigest()
+    return _ph.hash(password)
 
-def verify_password(password: str, hashed: str) -> bool:
-    return hash_password(password) == hashed
+
+def verify_password(password: str, stored_hash: str) -> bool:
+    if stored_hash.startswith("$argon2"):
+        try:
+            return _ph.verify(stored_hash, password)
+        except (VerifyMismatchError, VerificationError):
+            return False
+    # Legacy SHA-256 — accepted but will be upgraded on next login
+    return hashlib.sha256(password.encode()).hexdigest() == stored_hash
+
 
 def create_token(user_id: str, email: str) -> str:
     payload = {
@@ -27,7 +38,8 @@ def create_token(user_id: str, email: str) -> str:
         "email": email,
         "exp": datetime.utcnow() + timedelta(days=30)
     }
-    return jwt.encode(payload, JWT_SECRET, algorithm="HS256")
+    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
 
 def _register_user(email: str, password: str, name: str) -> dict:
     conn = get_conn()
@@ -47,6 +59,7 @@ def _register_user(email: str, password: str, name: str) -> dict:
     finally:
         conn.close()
 
+
 def _login_user(email: str, password: str) -> dict:
     conn = get_conn()
     try:
@@ -57,9 +70,15 @@ def _login_user(email: str, password: str) -> dict:
             return {"error": "Email tidak ditemukan"}
         if not verify_password(password, user["password_hash"]):
             return {"error": "Password salah"}
+        # Upgrade SHA-256 hash ke argon2 secara transparan
+        if not user["password_hash"].startswith("$argon2"):
+            new_hash = hash_password(password)
+            c.execute("UPDATE zenith_users SET password_hash = %s WHERE email = %s", (new_hash, email))
+            conn.commit()
         return {"user_id": str(user["id"]), "email": user["email"], "name": user["name"]}
     finally:
         conn.close()
+
 
 @router.post("/register")
 async def register(request: Request):
@@ -73,16 +92,16 @@ async def register(request: Request):
     if "error" in result:
         return JSONResponse({"status": "error", "message": result["error"]})
     token = create_token(result["user_id"], result["email"])
-    
-    # Auto simpan nama ke memory ZENITH
+
     try:
         from app.memory.memory_engine import save_memory
         import asyncio
         asyncio.create_task(save_memory(result["user_id"], "nama", result["name"], "identity"))
     except:
         pass
-    
+
     return JSONResponse({"status": "success", "token": token, "user": result})
+
 
 @router.post("/login")
 async def login(request: Request):
@@ -95,27 +114,29 @@ async def login(request: Request):
     if "error" in result:
         return JSONResponse({"status": "error", "message": result["error"]})
     token = create_token(result["user_id"], result["email"])
-    
-    # Auto simpan nama ke memory ZENITH
+
     try:
         from app.memory.memory_engine import save_memory
         import asyncio
         asyncio.create_task(save_memory(result["user_id"], "nama", result["name"], "identity"))
     except:
         pass
-    
+
     return JSONResponse({"status": "success", "token": token, "user": result})
+
 
 @router.post("/set-password")
 async def set_password(request: Request):
+    """Ganti password — hanya untuk pemilik akun (JWT wajib)."""
+    payload = get_current_user(request)
     data = await request.json()
-    user_id = data.get("user_id", "")
     new_password = data.get("password", "")
-    if not user_id or not new_password:
-        return JSONResponse({"status": "error", "message": "user_id dan password wajib diisi"})
+    if not new_password:
+        return JSONResponse({"status": "error", "message": "Password baru wajib diisi"})
     if len(new_password) < 6:
         return JSONResponse({"status": "error", "message": "Password minimal 6 karakter"})
-    
+
+    user_id = payload["user_id"]
     import asyncio
     def _set_pw():
         from app.core.database import get_conn
@@ -130,6 +151,7 @@ async def set_password(request: Request):
             conn.close()
     result = await asyncio.to_thread(_set_pw)
     return JSONResponse(result)
+
 
 @router.post("/device-code")
 async def create_device_code(request: Request):
@@ -149,6 +171,7 @@ async def create_device_code(request: Request):
             conn.close()
     await asyncio.to_thread(_save)
     return JSONResponse({"status": "success", "code": code})
+
 
 @router.get("/device-poll/{code}")
 async def poll_device_code(code: str):
@@ -173,8 +196,11 @@ async def poll_device_code(code: str):
             pass
     return JSONResponse({"status": "waiting"})
 
+
 @router.post("/device-activate")
 async def device_activate(request: Request):
+    """Aktivasi device code — JWT wajib agar tidak bisa di-abuse."""
+    get_current_user(request)
     import asyncio, json as json_lib
     data = await request.json()
     code = data.get("code", "")
@@ -200,16 +226,12 @@ async def device_activate(request: Request):
         return JSONResponse({"status": "success"})
     return JSONResponse({"status": "error", "message": "Kode tidak valid"})
 
+
 @router.get("/me")
 async def me(request: Request):
-    token = request.headers.get("Authorization", "").replace("Bearer ", "")
-    if not token:
-        return JSONResponse({"status": "error", "message": "Token tidak ada"})
-    try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-        return JSONResponse({"status": "success", "user": payload})
-    except Exception:
-        return JSONResponse({"status": "error", "message": "Token invalid"})
+    payload = get_current_user(request)
+    return JSONResponse({"status": "success", "user": payload})
+
 
 @router.get("/google/{redirect_after}")
 async def google_login(redirect_after: str = "app"):
@@ -225,9 +247,11 @@ async def google_login(redirect_after: str = "app"):
     from fastapi.responses import RedirectResponse
     return RedirectResponse(auth_url)
 
+
 @router.get("/info/{user_id}")
-async def user_info(user_id: str):
-    """Get user plan dan sisa trial"""
+async def user_info(user_id: str, request: Request):
+    """Get user plan dan sisa trial — hanya untuk pemilik akun."""
+    require_self(request, user_id)
     from app.core.database import get_conn
     from datetime import date
     conn = get_conn()
@@ -237,14 +261,14 @@ async def user_info(user_id: str):
         user = c.fetchone()
         if not user:
             return JSONResponse({"status": "error"})
-        
+
         plan = user["plan"] or "trial"
         trial_start = user["trial_start"] or date.today()
         days_used = (date.today() - trial_start).days
         days_left = max(0, 3 - days_used)
         limit = 10 if plan == "trial" else 99999 if plan == "founder" else 20
         commands_used = user["commands_today"] or 0
-        
+
         return JSONResponse({
             "status": "success",
             "plan": plan,
@@ -255,15 +279,17 @@ async def user_info(user_id: str):
     finally:
         conn.close()
 
+
 @router.get("/memory/{user_id}")
-async def get_memory(user_id: str):
-    """Get memory snippets untuk workspace panel"""
+async def get_memory(user_id: str, request: Request):
+    """Get memory snippets — hanya untuk pemilik akun."""
+    require_self(request, user_id)
     from app.core.database import get_conn
     conn = get_conn()
     try:
         c = conn.cursor()
         c.execute("""
-            SELECT key, value FROM zenith_memory 
+            SELECT key, value FROM zenith_memory
             WHERE user_id = %s AND key != 'gmail_token'
             ORDER BY updated_at DESC LIMIT 10
         """, (user_id,))

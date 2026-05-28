@@ -11,6 +11,7 @@ from app.memory.memory_engine import (
 )
 import json
 from app.core.limits import check_and_increment
+from app.core.security import require_self
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
@@ -22,15 +23,13 @@ async def chat_endpoint(request: Request):
     user_id = data.get("user_id", "default")
     message = data.get("message", "")
     
-    # Skip limit check untuk internal messages
-    if not message.startswith("__"):
-        limit_check = check_and_increment(user_id)
-        if not limit_check.get("allowed"):
-            return JSONResponse({
-                "status": "limit",
-                "response": limit_check.get("message", "Limit tercapai"),
-                "reason": limit_check.get("reason")
-            })
+    limit_check = check_and_increment(user_id)
+    if not limit_check.get("allowed"):
+        return JSONResponse({
+            "status": "limit",
+            "response": limit_check.get("message", "Limit tercapai"),
+            "reason": limit_check.get("reason")
+        })
 
     if not message:
         return JSONResponse({"status": "error", "message": "Pesan kosong"})
@@ -61,15 +60,13 @@ async def chat_stream_endpoint(request: Request):
     user_id = data.get("user_id", "default")
     message = data.get("message", "")
     
-    # Skip limit check untuk internal messages
-    if not message.startswith("__"):
-        limit_check = check_and_increment(user_id)
-        if not limit_check.get("allowed"):
-            return JSONResponse({
-                "status": "limit",
-                "response": limit_check.get("message", "Limit tercapai"),
-                "reason": limit_check.get("reason")
-            })
+    limit_check = check_and_increment(user_id)
+    if not limit_check.get("allowed"):
+        return JSONResponse({
+            "status": "limit",
+            "response": limit_check.get("message", "Limit tercapai"),
+            "reason": limit_check.get("reason")
+        })
 
     memory_ctx = await get_memory_context(user_id)
     history    = await get_history(user_id)
@@ -92,15 +89,17 @@ async def chat_stream_endpoint(request: Request):
 
 
 @router.get("/history/{user_id}")
-async def get_chat_history(user_id: str):
-    """Ambil history percakapan"""
+async def get_chat_history(user_id: str, request: Request):
+    """Ambil history percakapan — hanya untuk pemilik akun."""
+    require_self(request, user_id)
     history = await get_history(user_id, limit=50)
     return JSONResponse({"status": "success", "history": history})
 
 
 @router.delete("/history/{user_id}")
-async def clear_history(user_id: str):
-    """Hapus history percakapan"""
+async def clear_history(user_id: str, request: Request):
+    """Hapus history percakapan — hanya untuk pemilik akun."""
+    require_self(request, user_id)
     from app.core.database import get_conn
     import asyncio
 

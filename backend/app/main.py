@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 import logging
+import os
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO)
@@ -29,9 +30,12 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+_cors_origins_env = os.getenv("CORS_ORIGINS", "")
+_allowed_origins = [o.strip() for o in _cors_origins_env.split(",") if o.strip()] or ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

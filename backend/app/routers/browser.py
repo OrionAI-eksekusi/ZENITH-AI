@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 from playwright.async_api import async_playwright
 import httpx
 from bs4 import BeautifulSoup
+from app.core.security import is_safe_url
 
 router = APIRouter(prefix="/browser", tags=["browser"])
 
@@ -70,6 +71,8 @@ async def scrape(request: Request):
     url = data.get("url", "")
     if not url:
         return JSONResponse({"status": "error", "message": "URL diperlukan"})
+    if not is_safe_url(url):
+        return JSONResponse({"status": "error", "message": "URL tidak diizinkan"})
     result = await scrape_url_playwright(url)
     return JSONResponse(result)
 
