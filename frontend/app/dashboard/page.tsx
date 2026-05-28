@@ -75,12 +75,12 @@ export default function Home() {
 
   // Deteksi desktop setelah mount (hydration-safe)
   useEffect(() => {
-    if (typeof navigator !== 'undefined' && navigator.userAgent.includes('Electron')) setIsDesktop(true)
+    if (typeof navigator !== 'undefined' && (navigator.userAgent.includes('Electron') || !!(window as any).electronAPI)) setIsDesktop(true)
   }, [])
 
   // Clap detection untuk desktop — tepuk tangan 2x balik ke ZENITH
   useEffect(() => {
-    if (typeof window === 'undefined' || !navigator.userAgent.includes('Electron')) return
+    if (typeof window === 'undefined' || !(navigator.userAgent.includes('Electron') || !!(window as any).electronAPI)) return
     let clapCount = 0
     let lastClap = 0
     let clapTimer: any = null
@@ -303,7 +303,7 @@ export default function Home() {
       // Detect OPEN command — desktop: panel di dalam; web: orb klik
       if (data.response && data.response.includes('[OPEN:')) {
         const matches = [...String(data.response).matchAll(/\[OPEN:(.*?)\]/g)]
-        if (navigator.userAgent.includes('Electron')) {
+        if ((navigator.userAgent.includes('Electron') || !!(window as any).electronAPI)) {
           matches.forEach(m => addPanel(m[1]))
         } else {
           const first = matches[0]
@@ -316,7 +316,7 @@ export default function Home() {
         const match = data.response.match(/\[APP:(.*?)\]/)
         if (match) {
           if ((window as any).electronAPI) (window as any).electronAPI.openApp(match[1])
-          else if (navigator.userAgent.includes('Electron')) window.open('zenith-app://' + encodeURIComponent(match[1]), '_blank')
+          else if ((navigator.userAgent.includes('Electron') || !!(window as any).electronAPI)) window.open('zenith-app://' + encodeURIComponent(match[1]), '_blank')
         }
       }
 
@@ -396,7 +396,7 @@ export default function Home() {
       setResponse(data.response)
       if (data.response && data.response.includes('[OPEN:')) {
         const matches = [...String(data.response).matchAll(/\[OPEN:(.*?)\]/g)]
-        if (navigator.userAgent.includes('Electron')) matches.forEach(m => addPanel(m[1]))
+        if ((navigator.userAgent.includes('Electron') || !!(window as any).electronAPI)) matches.forEach(m => addPanel(m[1]))
         else { const f = matches[0]; if (f) { setWebviewUrl(normalizeUrl(f[1])); setOrbMini(true) } }
       }
       updateState('idle')

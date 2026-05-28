@@ -8,11 +8,10 @@ import httpx
 from elevenlabs import ElevenLabs, VoiceSettings
 
 def get_client():
-    key = os.getenv("ELEVENLABS_API_KEY", "f5163f6d81ff94146f967a73985f7b16331a97b258e65568fd72900e514fd92a")
-    return ElevenLabs(api_key=key)
+    return ElevenLabs(api_key=os.getenv("ELEVENLABS_API_KEY", ""))
 
 def get_voice_id():
-    return os.getenv("ELEVENLABS_VOICE_ID", "I7sakys8pBZ1Z5f0UhT9")
+    return os.getenv("ELEVENLABS_VOICE_ID", "")
 
 async def speech_to_text(audio_bytes: bytes, content_type: str = "audio/wav") -> str:
     key = os.getenv("ELEVENLABS_API_KEY", "")
