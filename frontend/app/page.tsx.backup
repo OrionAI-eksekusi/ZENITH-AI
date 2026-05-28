@@ -289,12 +289,8 @@ export default function Home() {
         const match = data.response.match(/\[OPEN:(.*?)\]/)
         if (match) {
           const url = match[1]
-          if (typeof window !== 'undefined' && navigator.userAgent.includes('Electron')) {
-            window.open(url, '_blank')
-          } else {
-            setWebviewUrl(url)
-            setOrbMini(true)
-          }
+          setWebviewUrl(url)
+          setOrbMini(true)
         }
       }
 
