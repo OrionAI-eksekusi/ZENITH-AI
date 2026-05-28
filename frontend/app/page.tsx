@@ -291,7 +291,6 @@ export default function Home() {
         if (match) {
           const url = match[1]
           if (typeof window !== 'undefined' && navigator.userAgent.includes('Electron')) {
-            fetch(`/api/open?url=${encodeURIComponent(url)}`).catch(()=>{})
             window.open(url, '_blank')
           } else {
             setWebviewUrl(url)
