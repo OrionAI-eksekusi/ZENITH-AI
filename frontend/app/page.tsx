@@ -81,8 +81,7 @@ export default function Home() {
           if (clapCount >= 2) {
             clapCount = 0
             try {
-              const { ipcRenderer } = (window as any).require('electron')
-              ipcRenderer.send('clap-detected')
+              (window as any).electronAPI?.clap()
             } catch {}
           }
           clearTimeout(clapTimer)
@@ -290,12 +289,8 @@ export default function Home() {
         const match = data.response.match(/\[OPEN:(.*?)\]/)
         if (match) {
           const url = match[1]
-          if (typeof window !== 'undefined' && navigator.userAgent.includes('Electron')) {
-            window.open(url, '_blank')
-          } else {
-            setWebviewUrl(url)
-            setOrbMini(true)
-          }
+          setWebviewUrl(url)
+          setOrbMini(true)
         }
       }
 
