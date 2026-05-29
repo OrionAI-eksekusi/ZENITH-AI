@@ -54,6 +54,9 @@ export default function Home() {
   const wakeWordRecRef = useRef<any>(null)
   const wakeWordActivateRef = useRef<() => void>(() => {})
   const [wakeWordDetected, setWakeWordDetected] = useState(false)
+  const [agentRunning, setAgentRunning] = useState(false)
+  const [agentStep, setAgentStep] = useState(0)
+  const agentStopRef = useRef(false)
   const streamRef = useRef<MediaStream|null>(null)
   const contextRef = useRef<AudioContext|null>(null)
   const processorRef = useRef<ScriptProcessorNode|null>(null)
@@ -346,7 +349,12 @@ export default function Home() {
         return
       }
       if (data.status !== 'success' || !data.transcript?.trim()) { if (activeRef.current) startRecording(); return }
-      // Cek screen command dulu sebelum proses normal
+      // Cek agent command dulu (prioritas tertinggi)
+      if (isAgentCommand(data.transcript)) {
+        await executeAgent(data.transcript)
+        return
+      }
+      // Cek screen command
       if (isScreenCommand(data.transcript)) {
         await handleScreenCommand(data.transcript)
         return
@@ -424,6 +432,111 @@ export default function Home() {
       src.start(0)
       audioUnlockRef.current = true
     } catch {}
+  }
+
+  // Deteksi computer use agent command
+  const isAgentCommand = (text: string) => {
+    const l = text.toLowerCase()
+    return (
+      (l.includes('balas') && (l.includes('wa') || l.includes('whatsapp') || l.includes('chat'))) ||
+      (l.includes('buka') && (l.includes('wa') || l.includes('whatsapp') || l.includes('traveloka') || l.includes('tokopedia') || l.includes('shopee') || l.includes('instagram') || l.includes('telegram'))) ||
+      (l.includes('cari') && l.includes('chat')) ||
+      l.includes('isi form') || l.includes('isi formulir') || l.includes('isi biodata') ||
+      l.includes('klik') || l.includes('carikan chat') ||
+      (l.includes('tolong') && (l.includes('buka') || l.includes('isi') || l.includes('balas')))
+    )
+  }
+
+  // Computer Use Agent executor
+  const executeAgent = async (command: string) => {
+    setAgentRunning(true)
+    agentStopRef.current = false
+    const MAX_STEPS = 15
+    const stepHistory: any[] = []
+    let userMemory = ''
+    try {
+      const memRes = await fetch(`${BACKEND}/memory/get?user_id=${getUserId()}`)
+      const memData = await memRes.json()
+      userMemory = memData.memory || ''
+    } catch {}
+    updateState('thinking')
+    setResponse('⚡ ZENITH sedang bekerja...')
+    for (let step = 0; step < MAX_STEPS; step++) {
+      if (agentStopRef.current) { setResponse('ZENITH dihentikan.'); break }
+      setAgentStep(step + 1)
+      const eAPI = (window as any).electronAPI
+      let imageData: string | null = null
+      if (eAPI?.captureScreen) imageData = await eAPI.captureScreen()
+      if (!imageData) { setResponse('Screen capture hanya tersedia di desktop app.'); break }
+      let action: any = null
+      try {
+        const res = await fetch(`${BACKEND}/screen/agent`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: imageData, command, step_history: stepHistory, user_id: getUserId(), user_memory: userMemory })
+        })
+        action = await res.json()
+      } catch { setResponse('Gagal menghubungi ZENITH agent.'); break }
+      if (action.message) setResponse(`[Step ${step + 1}] ${action.message}`)
+      if (action.done || action.action === 'complete') {
+        setTranscript(command)
+        setResponse(action.message)
+        updateState('speaking')
+        try {
+          const ttsRes = await fetch(`${BACKEND}/voice/tts`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: action.message, user_id: getUserId() })
+          })
+          const ttsData = await ttsRes.json()
+          if (ttsData.audio) {
+            const audio = new Audio(`data:audio/mp3;base64,${ttsData.audio}`)
+            audio.onended = () => { updateState('listening'); if (activeRef.current) startRecording() }
+            audio.play()
+          } else { updateState('listening'); if (activeRef.current) startRecording() }
+        } catch { updateState('listening'); if (activeRef.current) startRecording() }
+        break
+      }
+      switch (action.action) {
+        case 'click':
+          if (eAPI?.clickAt && eAPI?.getScreenSize) {
+            const size = await eAPI.getScreenSize()
+            await eAPI.clickAt(action.x_percent * size.width, action.y_percent * size.height)
+            await new Promise(r => setTimeout(r, 800))
+          }
+          break
+        case 'type':
+          if (eAPI?.typeText && action.text) {
+            await eAPI.typeText(action.text); await new Promise(r => setTimeout(r, 500))
+          }
+          break
+        case 'press_enter':
+          if (eAPI?.pressEnter) { await eAPI.pressEnter(); await new Promise(r => setTimeout(r, 500)) }
+          break
+        case 'open_url':
+          if (eAPI?.openBrowser && action.url) {
+            await eAPI.openBrowser(action.url); await new Promise(r => setTimeout(r, 3500))
+          }
+          break
+        case 'open_app':
+          if (eAPI?.openApp && action.app_name) {
+            eAPI.openApp(action.app_name); await new Promise(r => setTimeout(r, 3500))
+          }
+          break
+        case 'wait':
+          await new Promise(r => setTimeout(r, action.wait_ms || 1500))
+          break
+        case 'ask_user':
+          setTranscript(command)
+          setResponse(action.question || action.message)
+          updateState('listening')
+          setAgentRunning(false)
+          if (activeRef.current) startRecording()
+          return
+      }
+      stepHistory.push(action)
+      await new Promise(r => setTimeout(r, 300))
+    }
+    setAgentRunning(false)
   }
 
   // Deteksi apakah command berkaitan dengan layar/WhatsApp
@@ -825,6 +938,13 @@ export default function Home() {
                 ))}
                 {state==='thinking'&&(
                   <div style={{position:'absolute',width:210,height:210,borderRadius:'50%',border:'1px solid transparent',borderTop:'1px solid rgba(139,92,246,0.4)',animation:'spin 1s linear infinite'}}/>
+                )}
+                {agentRunning && (
+                  <div style={{position:'absolute',top:-52,left:'50%',transform:'translateX(-50%)',background:'rgba(99,102,241,0.12)',border:'1px solid rgba(99,102,241,0.35)',borderRadius:20,padding:'6px 16px',fontSize:9,color:'rgba(165,180,252,0.9)',fontFamily:'JetBrains Mono,monospace',letterSpacing:'0.12em',whiteSpace:'nowrap',zIndex:10,display:'flex',alignItems:'center',gap:8}}>
+                    <div style={{width:6,height:6,borderRadius:'50%',background:'#818cf8',animation:'pulse 1s ease infinite'}}/>
+                    ZENITH BEKERJA — STEP {agentStep}
+                    <span onClick={()=>{agentStopRef.current=true}} style={{marginLeft:8,color:'rgba(255,100,100,0.7)',cursor:'pointer',fontSize:8}}>■ STOP</span>
+                  </div>
                 )}
                 <div onClick={toggleActive} style={{cursor:'pointer'}}>
                   <OrbSVG size={170} />
