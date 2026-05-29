@@ -69,6 +69,7 @@ async def health():
 @app.post("/admin/upgrade")
 async def admin_upgrade_user(email: str, plan: str = "premium", secret: str = ""):
     import os
+    from fastapi import HTTPException
     if not secret or secret != os.getenv("ADMIN_SECRET", ""):
         raise HTTPException(status_code=403, detail="Forbidden")
     try:
