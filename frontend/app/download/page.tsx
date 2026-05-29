@@ -92,9 +92,9 @@ export default function Download() {
               </div>
               <div style={{padding:'4px 10px',background:'rgba(77,123,255,0.08)',border:'1px solid rgba(77,123,255,0.2)',borderRadius:20,fontSize:8,color:'rgba(107,159,255,0.8)',letterSpacing:'0.1em'}}>AVAILABLE</div>
             </div>
-            <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,width:'100%',padding:'13px 0',background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.05)',borderRadius:10,color:'rgba(255,255,255,0.15)',fontFamily:'JetBrains Mono,monospace',fontSize:9,letterSpacing:'0.18em'}}>
+            <a href={EXE_URL} style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,width:'100%',padding:'13px 0',background:'rgba(77,123,255,0.08)',border:'1px solid rgba(77,123,255,0.25)',borderRadius:10,color:'#6b9fff',fontFamily:'JetBrains Mono,monospace',fontSize:9,letterSpacing:'0.18em',textDecoration:'none',boxShadow:'0 0 20px rgba(77,123,255,0.05)'}}>
               ↓  DOWNLOAD .EXE
-            </div>
+            </a>
           </div>
 
           {/* Install Guide */}
