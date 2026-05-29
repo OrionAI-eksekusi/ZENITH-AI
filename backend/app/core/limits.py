@@ -21,7 +21,7 @@ def check_and_increment(user_id: str) -> dict:
         user = c.fetchone()
         
         if not user:
-            return {"allowed": True}
+            return {"allowed": False, "reason": "user_not_found", "message": "Akun tidak dikenali. Silakan logout dan login ulang."}
         
         today = date.today()
         plan = user["plan"] or "trial"

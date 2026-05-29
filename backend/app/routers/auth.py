@@ -49,7 +49,11 @@ def _register_user(email: str, password: str, name: str) -> dict:
         if c.fetchone():
             return {"error": "Email sudah terdaftar"}
         hashed = hash_password(password)
-        user_id = str(random.randint(100000, 999999))
+        while True:
+            user_id = str(random.randint(100000, 999999))
+            c.execute("SELECT 1 FROM zenith_users WHERE user_id = %s", (user_id,))
+            if not c.fetchone():
+                break
         c.execute("""
             INSERT INTO zenith_users (user_id, email, name, password_hash, created_at)
             VALUES (%s, %s, %s, %s, NOW())
@@ -64,7 +68,7 @@ def _login_user(email: str, password: str) -> dict:
     conn = get_conn()
     try:
         c = conn.cursor()
-        c.execute("SELECT id, email, name, password_hash FROM zenith_users WHERE email = %s", (email,))
+        c.execute("SELECT id, user_id, email, name, password_hash FROM zenith_users WHERE email = %s", (email,))
         user = c.fetchone()
         if not user:
             return {"error": "Email tidak ditemukan"}
@@ -75,7 +79,7 @@ def _login_user(email: str, password: str) -> dict:
             new_hash = hash_password(password)
             c.execute("UPDATE zenith_users SET password_hash = %s WHERE email = %s", (new_hash, email))
             conn.commit()
-        return {"user_id": str(user["id"]), "email": user["email"], "name": user["name"]}
+        return {"user_id": str(user["user_id"] or user["id"]), "email": user["email"], "name": user["name"]}
     finally:
         conn.close()
 

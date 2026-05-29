@@ -69,7 +69,7 @@ async def health():
 @app.post("/admin/upgrade")
 async def admin_upgrade_user(email: str, plan: str = "premium", secret: str = ""):
     import os
-    if secret != os.getenv("ADMIN_SECRET", "zenith_admin_2026"):
+    if not secret or secret != os.getenv("ADMIN_SECRET", ""):
         raise HTTPException(status_code=403, detail="Forbidden")
     try:
         from app.core.database import get_conn
