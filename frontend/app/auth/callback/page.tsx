@@ -16,7 +16,7 @@ function CallbackHandler() {
     if (token && user_id) {
       localStorage.setItem('zenith_token', token)
       localStorage.setItem('zenith_user', JSON.stringify({user_id, name, email}))
-      router.push('/')
+      router.push('/dashboard')
     } else {
       router.push('/login')
     }

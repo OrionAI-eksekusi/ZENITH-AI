@@ -3,10 +3,17 @@ import { useEffect, useState } from 'react'
 
 export default function LandingPage() {
   const [scrollY, setScrollY] = useState(0)
+  const [isMobile, setIsMobile] = useState(false)
   const [typed, setTyped] = useState('')
   const [cmdIdx, setCmdIdx] = useState(0)
   const commands = ['buka VS Code', 'ada email penting?', 'putar lagu favorit', 'balas email dari Budi']
 
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
   useEffect(() => {
     const fn = () => setScrollY(window.scrollY)
     window.addEventListener('scroll', fn)
@@ -76,7 +83,7 @@ export default function LandingPage() {
         <div style={{position:'absolute',inset:0,backgroundImage:'linear-gradient(rgba(255,255,255,0.01) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.01) 1px,transparent 1px)',backgroundSize:'88px 88px'}}/>
       </div>
 
-      <nav style={{position:'fixed',top:0,left:0,right:0,zIndex:100,height:58,display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 48px',background:scrollY>40?'rgba(13,13,18,0.82)':'transparent',backdropFilter:scrollY>40?'blur(24px)':'none',borderBottom:scrollY>40?'1px solid rgba(255,255,255,0.048)':'none',transition:'all .3s'}}>
+      <nav style={{position:'fixed',top:0,left:0,right:0,zIndex:100,height:58,display:'flex',alignItems:'center',justifyContent:'space-between',padding:isMobile?'0 20px':'0 48px',background:scrollY>40?'rgba(13,13,18,0.82)':'transparent',backdropFilter:scrollY>40?'blur(24px)':'none',borderBottom:scrollY>40?'1px solid rgba(255,255,255,0.048)':'none',transition:'all .3s'}}>
         <div style={{display:'flex',alignItems:'center',gap:9}}>
           <svg viewBox="0 0 200 200" width="24" height="24" style={{filter:'drop-shadow(0 0 8px rgba(99,102,241,0.5))'}}>
             <defs>
@@ -91,36 +98,36 @@ export default function LandingPage() {
           </svg>
           <span style={{fontWeight:700,fontSize:15,letterSpacing:'-.01em',color:'#fff'}}>ZENITH</span>
         </div>
-        <div style={{display:'flex',gap:32,alignItems:'center'}}>
+        <div style={{display:isMobile?'none':'flex',gap:32,alignItems:'center'}}>
           {[['Fitur','#fitur'],['Harga','#harga'],['Download','#download']].map(([l,h])=>(<a key={l} href={h} className="navlink">{l}</a>))}
           <a href="/login" style={{padding:'7px 17px',background:'rgba(255,255,255,0.055)',border:'1px solid rgba(255,255,255,0.09)',borderRadius:6,color:'rgba(232,232,240,0.75)',fontSize:13,textDecoration:'none',letterSpacing:'-.01em'}}>Masuk</a>
         </div>
       </nav>
 
-      <section style={{position:'relative',zIndex:1,minHeight:'100vh',display:'grid',gridTemplateColumns:'1fr 1fr',alignItems:'center',padding:'110px 48px 80px',maxWidth:1280,margin:'0 auto',gap:64}}>
+      <section style={{position:'relative',zIndex:1,minHeight:'100vh',display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',alignItems:'center',padding:isMobile?'90px 20px 50px':'110px 48px 80px',maxWidth:1280,margin:'0 auto',gap:isMobile?32:64}}>
         <div style={{animation:'fadeup .65s ease both'}}>
           <div style={{display:'inline-flex',alignItems:'center',gap:8,padding:'5px 14px',background:'rgba(99,102,241,0.07)',border:'1px solid rgba(99,102,241,0.18)',borderRadius:100,marginBottom:40}}>
             <span style={{width:5,height:5,borderRadius:'50%',background:'#4ade80',boxShadow:'0 0 8px rgba(74,222,128,0.6)',display:'inline-block',animation:'pulse 2s ease infinite'}}/>
             <span style={{fontSize:11,color:'rgba(232,232,240,0.48)',fontFamily:'JetBrains Mono,monospace',letterSpacing:'.08em'}}>v1.0.1 — Mac & Windows</span>
           </div>
-          <h1 style={{fontSize:80,fontWeight:900,lineHeight:.95,letterSpacing:'-.045em',marginBottom:30,color:'#fff',fontStyle:'italic'}}>
+          <h1 style={{fontSize:isMobile?38:80,fontWeight:900,lineHeight:.95,letterSpacing:'-.045em',marginBottom:30,color:'#fff',fontStyle:'italic'}}>
             Asisten AI<br/>
             yang <span style={{background:'linear-gradient(135deg,#c7d2fe 0%,#818cf8 45%,#a78bfa 100%)',backgroundSize:'200%',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',animation:'shimmer 5s linear infinite',fontStyle:'normal'}}>benar-benar</span><br/>
             bekerja.
           </h1>
-          <p style={{fontSize:16,color:'rgba(232,232,240,0.38)',lineHeight:1.72,marginBottom:44,maxWidth:420,fontWeight:400,letterSpacing:'-.01em'}}>Ucapkan perintah — ZENITH membuka aplikasi, membaca email, mencari informasi, dan mengelola hari Anda. Tanpa klik, tanpa ketik.</p>
-          <div style={{display:'flex',gap:10,alignItems:'center',marginBottom:52}}>
+          <p style={{fontSize:16,color:'rgba(232,232,240,0.38)',lineHeight:1.72,marginBottom:44,maxWidth:isMobile?'100%':420,fontWeight:400,letterSpacing:'-.01em'}}>Ucapkan perintah — ZENITH membuka aplikasi, membaca email, mencari informasi, dan mengelola hari Anda. Tanpa klik, tanpa ketik.</p>
+          <div style={{display:'flex',gap:10,alignItems:'center',marginBottom:isMobile?28:52,flexWrap:'wrap'}}>
             <a href="/login" className="ctap">Coba gratis 3 hari</a>
             <a href="/download" className="ctag">Download app ↓</a>
           </div>
-          <div style={{display:'flex',gap:36}}>
+          <div style={{display:'flex',gap:isMobile?20:36,flexWrap:'wrap'}}>
             {[['< 0.3s','waktu respons'],['Mac & Win','cross-platform'],['3 hari','trial gratis']].map(([n,l])=>(
               <div key={l}><div style={{fontSize:18,fontWeight:700,color:'#fff',letterSpacing:'-.03em'}}>{n}</div><div style={{fontSize:11,color:'rgba(232,232,240,0.24)',marginTop:3}}>{l}</div></div>
             ))}
           </div>
         </div>
 
-        <div style={{animation:'fadeup .65s .12s ease both',position:'relative'}}>
+        <div style={{animation:'fadeup .65s .12s ease both',position:'relative',display:isMobile?'none':'block'}}>
           <div style={{position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-50%)',width:360,height:360,background:'radial-gradient(circle,rgba(99,102,241,0.09),transparent 70%)',filter:'blur(50px)',pointerEvents:'none'}}/>
           <div style={{background:'rgba(14,14,20,0.94)',border:'1px solid rgba(255,255,255,0.065)',borderRadius:20,overflow:'hidden',backdropFilter:'blur(30px)',boxShadow:'0 48px 120px rgba(0,0,0,0.7),0 0 0 1px rgba(255,255,255,0.03)',animation:'floatcard 6s ease-in-out infinite'}}>
             <div style={{display:'flex',alignItems:'center',gap:6,padding:'13px 18px',borderBottom:'1px solid rgba(255,255,255,0.048)',background:'rgba(255,255,255,0.016)'}}>
@@ -165,11 +172,11 @@ export default function LandingPage() {
 
       <div className="div"/>
 
-      <section id="fitur" style={{position:'relative',zIndex:1,padding:'100px 48px',maxWidth:1280,margin:'0 auto'}}>
-        <div style={{display:'grid',gridTemplateColumns:'260px 1fr',gap:88,alignItems:'start'}}>
+      <section id="fitur" style={{position:'relative',zIndex:1,padding:isMobile?'60px 20px':'100px 48px',maxWidth:1280,margin:'0 auto'}}>
+        <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'260px 1fr',gap:isMobile?0:88,alignItems:'start'}}>
           <div style={{position:'sticky',top:80}}>
             <div className="label">Kemampuan</div>
-            <h2 style={{fontSize:38,fontWeight:800,color:'#fff',letterSpacing:'-.03em',lineHeight:1.08,marginBottom:18}}>Dirancang untuk produktivitas nyata.</h2>
+            <h2 style={{fontSize:isMobile?26:38,fontWeight:800,color:'#fff',letterSpacing:'-.03em',lineHeight:1.08,marginBottom:18}}>Dirancang untuk produktivitas nyata.</h2>
             <p style={{fontSize:14,color:'rgba(232,232,240,0.3)',lineHeight:1.75,fontWeight:300}}>Bukan sekadar demo — ZENITH benar-benar mengerjakan pekerjaan Anda.</p>
           </div>
           <div>
@@ -185,14 +192,14 @@ export default function LandingPage() {
 
       <div className="div"/>
 
-      <section id="harga" style={{position:'relative',zIndex:1,padding:'100px 48px',maxWidth:1280,margin:'0 auto'}}>
+      <section id="harga" style={{position:'relative',zIndex:1,padding:isMobile?'60px 20px':'100px 48px',maxWidth:1280,margin:'0 auto'}}>
         <div className="label">Harga</div>
-        <h2 style={{fontSize:56,fontWeight:900,color:'#fff',letterSpacing:'-.04em',lineHeight:.98,marginBottom:16,fontStyle:'italic'}}>Sederhana.<br/>Tidak ada kejutan.</h2>
+        <h2 style={{fontSize:isMobile?34:56,fontWeight:900,color:'#fff',letterSpacing:'-.04em',lineHeight:.98,marginBottom:16,fontStyle:'italic'}}>Sederhana.<br/>Tidak ada kejutan.</h2>
         <p style={{fontSize:15,color:'rgba(232,232,240,0.3)',fontWeight:300,marginBottom:60}}>Mulai gratis. Upgrade kapan Anda siap.</p>
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,maxWidth:760}}>
+        <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:16,maxWidth:760}}>
           <div style={{padding:36,background:'rgba(255,255,255,0.018)',border:'1px solid rgba(255,255,255,0.055)',borderRadius:16}}>
             <div style={{fontSize:10,color:'rgba(232,232,240,0.28)',fontFamily:'JetBrains Mono,monospace',letterSpacing:'.14em',marginBottom:24}}>TRIAL</div>
-            <div style={{fontSize:56,fontWeight:900,color:'#fff',letterSpacing:'-.04em',lineHeight:1,marginBottom:8}}>Gratis</div>
+            <div style={{fontSize:isMobile?34:56,fontWeight:900,color:'#fff',letterSpacing:'-.04em',lineHeight:1,marginBottom:8}}>Gratis</div>
             <div style={{fontSize:13,color:'rgba(232,232,240,0.22)',marginBottom:36,fontWeight:300}}>Selama 3 hari pertama</div>
             <div style={{borderTop:'1px solid rgba(255,255,255,0.048)',paddingTop:28}}>
               {['10 perintah / hari','Semua fitur dasar','Mac & Windows','Tanpa kartu kredit'].map((f,i)=>(
@@ -208,7 +215,7 @@ export default function LandingPage() {
             <div style={{position:'absolute',top:18,right:18,padding:'3px 11px',background:'rgba(99,102,241,0.18)',border:'1px solid rgba(99,102,241,0.28)',borderRadius:100,fontSize:9,color:'rgba(165,180,252,0.85)',fontFamily:'JetBrains Mono,monospace',letterSpacing:'.1em'}}>POPULER</div>
             <div style={{fontSize:10,color:'rgba(99,102,241,0.55)',fontFamily:'JetBrains Mono,monospace',letterSpacing:'.14em',marginBottom:24}}>PREMIUM</div>
             <div style={{display:'flex',alignItems:'baseline',gap:8,marginBottom:8}}>
-              <div style={{fontSize:56,fontWeight:900,color:'#fff',letterSpacing:'-.04em',lineHeight:1}}>130rb</div>
+              <div style={{fontSize:isMobile?34:56,fontWeight:900,color:'#fff',letterSpacing:'-.04em',lineHeight:1}}>130rb</div>
               <div style={{fontSize:13,color:'rgba(232,232,240,0.28)',fontWeight:300}}>/bln</div>
             </div>
             <div style={{fontSize:13,color:'rgba(232,232,240,0.22)',marginBottom:36,fontWeight:300}}>Batalkan kapan saja</div>
@@ -227,11 +234,11 @@ export default function LandingPage() {
 
       <div className="div"/>
 
-      <section id="download" style={{position:'relative',zIndex:1,padding:'100px 48px',maxWidth:1280,margin:'0 auto'}}>
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:80,alignItems:'center'}}>
+      <section id="download" style={{position:'relative',zIndex:1,padding:isMobile?'60px 20px':'100px 48px',maxWidth:1280,margin:'0 auto'}}>
+        <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:isMobile?32:80,alignItems:'center'}}>
           <div>
             <div className="label">Download</div>
-            <h2 style={{fontSize:52,fontWeight:900,color:'#fff',letterSpacing:'-.04em',lineHeight:.98,marginBottom:20,fontStyle:'italic'}}>Mulai hari ini,<br/>bukan besok.</h2>
+            <h2 style={{fontSize:isMobile?32:52,fontWeight:900,color:'#fff',letterSpacing:'-.04em',lineHeight:.98,marginBottom:20,fontStyle:'italic'}}>Mulai hari ini,<br/>bukan besok.</h2>
             <p style={{fontSize:15,color:'rgba(232,232,240,0.3)',fontWeight:300,lineHeight:1.72,maxWidth:320}}>Install dalam 30 detik. Trial 3 hari gratis langsung aktif, tanpa kartu kredit.</p>
           </div>
           <div style={{display:'flex',flexDirection:'column',gap:12}}>
@@ -247,7 +254,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <footer style={{position:'relative',zIndex:1,borderTop:'1px solid rgba(255,255,255,0.048)',padding:'36px 48px',maxWidth:1280,margin:'0 auto',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:20}}>
+      <footer style={{position:'relative',zIndex:1,borderTop:'1px solid rgba(255,255,255,0.048)',padding:isMobile?'28px 20px':'36px 48px',maxWidth:1280,margin:'0 auto',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:20}}>
         <div style={{display:'flex',alignItems:'center',gap:8}}>
           <svg viewBox="0 0 200 200" width="18" height="18"><defs><radialGradient id="fo" cx="35%" cy="25%" r="80%"><stop offset="0%" stopColor="#1e2060"/><stop offset="100%" stopColor="#06060f"/></radialGradient></defs><circle cx="100" cy="100" r="100" fill="url(#fo)"/><circle cx="100" cy="100" r="68" fill="none" stroke="rgba(99,102,241,0.45)" strokeWidth="2"/><circle cx="100" cy="100" r="58" fill="#06060f"/><circle cx="78" cy="76" r="4" fill="rgba(255,255,255,0.7)"/></svg>
           <span style={{fontWeight:700,fontSize:13,letterSpacing:'-.01em',color:'rgba(232,232,240,0.38)'}}>ZENITH</span>

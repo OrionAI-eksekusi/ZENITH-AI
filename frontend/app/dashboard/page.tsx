@@ -346,6 +346,11 @@ export default function Home() {
         return
       }
       if (data.status !== 'success' || !data.transcript?.trim()) { if (activeRef.current) startRecording(); return }
+      // Cek screen command dulu sebelum proses normal
+      if (isScreenCommand(data.transcript)) {
+        await handleScreenCommand(data.transcript)
+        return
+      }
       setTranscript(data.transcript)
       setResponse(data.response)
       if(data.transcript) setChatHistory(prev => [data.transcript, ...prev].slice(0, 5))
@@ -419,6 +424,101 @@ export default function Home() {
       src.start(0)
       audioUnlockRef.current = true
     } catch {}
+  }
+
+  // Deteksi apakah command berkaitan dengan layar/WhatsApp
+  const isScreenCommand = (text: string) => {
+    const l = text.toLowerCase()
+    return l.includes('layar') || l.includes('screenshot') ||
+           l.includes('ada wa') || l.includes('cek wa') ||
+           l.includes('ada whatsapp') || l.includes('buka whatsapp') ||
+           l.includes('buka wa') || l.includes('balas wa') ||
+           l.includes('balas whatsapp') || l.includes('ada pesan') ||
+           l.includes('lihat wa') || l.includes('pesan masuk') ||
+           (l.includes('apa') && l.includes('layar')) ||
+           (l.includes('lihat') && l.includes('layar'))
+  }
+
+  // Handle screen awareness command
+  const handleScreenCommand = async (command: string) => {
+    const l = command.toLowerCase()
+    updateState('thinking')
+    setResponse('Menganalisa layar...')
+
+    // Buka WhatsApp dulu kalau diminta
+    if ((l.includes('buka') && (l.includes('wa') || l.includes('whatsapp'))) ||
+        l.includes('ada wa') || l.includes('cek wa') || l.includes('balas wa') ||
+        l.includes('balas whatsapp') || l.includes('ada pesan')) {
+      if ((window as any).electronAPI?.openApp) {
+        (window as any).electronAPI.openApp('WhatsApp')
+        await new Promise(r => setTimeout(r, 3000))
+      }
+    }
+
+    // Capture screen
+    let imageData: string | null = null
+    if ((window as any).electronAPI?.captureScreen) {
+      imageData = await (window as any).electronAPI.captureScreen()
+    }
+
+    if (!imageData) {
+      setResponse('Screen capture hanya tersedia di desktop app ZENITH.')
+      updateState('idle')
+      if (activeRef.current) startRecording()
+      return
+    }
+
+    try {
+      const res = await fetch(`${BACKEND}/screen/analyze`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: imageData, command })
+      })
+      const data = await res.json()
+      const reply = data.response || 'Tidak bisa menganalisa layar.'
+      setTranscript(command)
+      setResponse(reply)
+      updateState('speaking')
+
+      // TTS jawaban
+      try {
+        const ttsRes = await fetch(`${BACKEND}/voice/tts`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: reply, user_id: getUserId() })
+        })
+        const ttsData = await ttsRes.json()
+        if (ttsData.audio) {
+          const audio = new Audio(`data:audio/mp3;base64,${ttsData.audio}`)
+          audio.play()
+          audio.onended = () => {
+            updateState('listening')
+            if (activeRef.current) startRecording()
+          }
+        } else {
+          updateState('listening')
+          if (activeRef.current) startRecording()
+        }
+      } catch { updateState('listening'); if (activeRef.current) startRecording() }
+
+      // Auto type + send kalau ada perintah balas
+      if (l.includes('balas') && (l.includes('wa') || l.includes('whatsapp'))) {
+        const bilangIdx = l.indexOf('bilang')
+        if (bilangIdx !== -1 && (window as any).electronAPI?.typeText) {
+          const msg = command.substring(bilangIdx + 7).trim()
+          if (msg) {
+            await new Promise(r => setTimeout(r, 1500))
+            await (window as any).electronAPI.typeText(msg)
+            await new Promise(r => setTimeout(r, 500))
+            await (window as any).electronAPI.pressEnter()
+          }
+        }
+      }
+    } catch {
+      setResponse('Gagal analisa layar. Coba lagi.')
+      updateState('listening')
+      if (activeRef.current) startRecording()
+    }
   }
 
   const toggleActive = async () => {

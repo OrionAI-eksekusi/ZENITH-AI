@@ -11,11 +11,18 @@ export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const [error, setError] = useState('')
   const [isElectron, setIsElectron] = useState(false)
   const [time, setTime] = useState('')
 
   // Hydration-safe Electron detection
+    useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
   useEffect(() => {
     setIsElectron(!!(window as any).electronAPI || navigator.userAgent.includes('Electron'))
     const t = setInterval(() => setTime(new Date().toLocaleTimeString('id-ID', { hour12: false })), 1000)

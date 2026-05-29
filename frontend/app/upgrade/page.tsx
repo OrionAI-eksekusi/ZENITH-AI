@@ -4,7 +4,14 @@ import { useEffect, useState } from 'react'
 export default function UpgradePage() {
   const [user, setUser] = useState<any>(null)
   const [copied, setCopied] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
 
+    useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
   useEffect(() => {
     const u = localStorage.getItem('zenith_user')
     if (u) setUser(JSON.parse(u))
@@ -41,7 +48,7 @@ export default function UpgradePage() {
       `}</style>
 
       <div style={{minHeight:'100vh',background:'radial-gradient(circle at 30% 30%,rgba(77,123,255,0.08),transparent 60%)',padding:'60px 24px'}}>
-        <div style={{maxWidth:560,margin:'0 auto',animation:'fadeIn 0.5s ease'}}>
+        <div style={{maxWidth:isMobile?'100%':560,margin:'0 auto',animation:'fadeIn 0.5s ease'}}>
 
           {/* Back */}
           <a href="/dashboard" className="backbtn" style={{fontSize:'9px',letterSpacing:'0.2em',color:'rgba(77,123,255,0.4)',display:'block',marginBottom:'40px',transition:'color 0.2s'}}>← KEMBALI KE DASHBOARD</a>

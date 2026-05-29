@@ -1,8 +1,16 @@
 'use client'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
 export default function Download() {
   const router = useRouter()
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
   const DMG_URL = 'https://github.com/OrionAI-eksekusi/ZENITH-desktop/releases/download/v1.0.1/ZENITH-1.0.1-arm64.dmg'
   const EXE_URL = 'https://github.com/OrionAI-eksekusi/ZENITH-desktop/releases/download/v1.0.1/ZENITH-Setup-1.0.1-x64.exe'
 
@@ -49,7 +57,7 @@ export default function Download() {
         </div>
 
         {/* Content */}
-        <div style={{width:'100%',maxWidth:480,animation:'fadeIn 0.6s ease'}}>
+        <div style={{width:'100%',maxWidth:isMobile?'100%':480,animation:'fadeIn 0.6s ease'}}>
           <div style={{textAlign:'center',marginBottom:36}}>
             <div style={{fontSize:16,fontWeight:600,color:'rgba(255,255,255,0.9)',marginBottom:6,letterSpacing:'0.05em'}}>Download Desktop App</div>
             <div style={{fontSize:9,color:'rgba(255,255,255,0.25)',letterSpacing:'0.12em'}}>ZENITH AI · V1.0.0</div>
@@ -97,10 +105,31 @@ export default function Download() {
             </a>
           </div>
 
+          {/* Mac Warning Guide */}
+          <div style={{background:'rgba(255,165,0,0.04)',border:'1px solid rgba(255,165,0,0.15)',borderRadius:12,padding:20,marginBottom:16}}>
+            <div style={{fontSize:8,color:'rgba(255,165,0,0.6)',letterSpacing:'0.18em',marginBottom:14,fontFamily:'JetBrains Mono,monospace'}}>⚠️ KHUSUS PENGGUNA MAC</div>
+            <div style={{fontSize:11,color:'rgba(255,255,255,0.5)',marginBottom:14,lineHeight:1.7}}>Jika muncul peringatan <span style={{color:'rgba(255,165,0,0.8)',fontWeight:600}}>"ZENITH Tidak Dibuka"</span> dari Apple, ikuti langkah berikut:</div>
+            {[
+              ['Klik Selesai','Tutup dialog peringatan tersebut'],
+              ['Buka System Settings','Pergi ke System Settings → Privacy & Security'],
+              ['Scroll ke bawah','Cari bagian Security, akan ada tombol "Tetap Buka" untuk ZENITH'],
+              ['Klik "Tetap Buka"','Masukkan password Mac kamu jika diminta'],
+              ['Buka ZENITH','App akan terbuka normal dan tidak akan minta izin lagi']
+            ].map(([title, desc], i) => (
+              <div key={i} style={{display:'flex',alignItems:'flex-start',gap:10,marginBottom:10}}>
+                <div style={{width:18,height:18,borderRadius:'50%',background:'rgba(255,165,0,0.1)',border:'1px solid rgba(255,165,0,0.25)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:7,color:'rgba(255,165,0,0.7)',flexShrink:0,marginTop:1}}>{i+1}</div>
+                <div><div style={{fontSize:10,color:'rgba(255,255,255,0.65)',fontWeight:600,marginBottom:2}}>{title}</div><div style={{fontSize:9,color:'rgba(255,255,255,0.3)',lineHeight:1.6}}>{desc}</div></div>
+              </div>
+            ))}
+            <div style={{marginTop:14,padding:'10px 14px',background:'rgba(255,165,0,0.06)',borderRadius:8,border:'1px solid rgba(255,165,0,0.1)'}}>
+              <div style={{fontSize:9,color:'rgba(255,165,0,0.5)',letterSpacing:'0.1em',marginBottom:6,fontFamily:'JetBrains Mono,monospace'}}>ATAU VIA TERMINAL</div>
+              <div style={{fontSize:10,color:'rgba(255,255,255,0.4)',fontFamily:'JetBrains Mono,monospace'}}>xattr -rd com.apple.quarantine /Applications/ZENITH.app</div>
+            </div>
+          </div>
           {/* Install Guide */}
           <div style={{background:'rgba(77,123,255,0.02)',border:'1px solid rgba(77,123,255,0.07)',borderRadius:12,padding:20,marginBottom:28}}>
             <div style={{fontSize:8,color:'rgba(77,123,255,0.4)',letterSpacing:'0.18em',marginBottom:14}}>CARA INSTALL</div>
-            {['Download file .DMG','Buka file yang ter-download','Drag ZENITH → Applications','Buka dari Launchpad atau Spotlight','Izinkan akses saat diminta'].map((step,i)=>(
+            {['Download file .DMG','Buka file yang ter-download','Drag ZENITH → Applications','Buka dari Launchpad atau Spotlight — jika muncul peringatan Apple, lihat panduan di bawah','Izinkan akses microphone saat diminta'].map((step,i)=>(
               <div key={i} style={{display:'flex',alignItems:'center',gap:10,marginBottom:8}}>
                 <div style={{width:16,height:16,borderRadius:'50%',background:'rgba(77,123,255,0.1)',border:'1px solid rgba(77,123,255,0.2)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:7,color:'rgba(77,123,255,0.6)',flexShrink:0}}>{i+1}</div>
                 <div style={{fontSize:8,color:'rgba(255,255,255,0.35)',letterSpacing:'0.05em'}}>{step}</div>
