@@ -64,3 +64,27 @@ async def root():
 @app.get("/health")
 async def health():
     return {"status": "ok", "service": "ZENITH AI"}
+
+# ─── ADMIN: UPGRADE USER MANUAL ───
+@app.post("/admin/upgrade")
+async def admin_upgrade_user(email: str, plan: str = "premium", secret: str = ""):
+    import os
+    if secret != os.getenv("ADMIN_SECRET", "zenith_admin_2026"):
+        raise HTTPException(status_code=403, detail="Forbidden")
+    try:
+        from app.core.database import get_conn
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute("UPDATE zenith_users SET plan = %s WHERE email = %s RETURNING email", (plan, email))
+        result = cur.fetchone()
+        conn.commit()
+        cur.close()
+        conn.close()
+        if result:
+            return {"status": "success", "message": f"{email} upgraded to {plan}"}
+        else:
+            raise HTTPException(status_code=404, detail="User tidak ditemukan")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
