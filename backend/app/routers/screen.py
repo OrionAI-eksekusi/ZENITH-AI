@@ -12,6 +12,12 @@ async def analyze_screen(request: Request):
         body = await request.json()
         image_data = body.get("image", "")
         command = body.get("command", "apa yang ada di layar?")
+        # Deteksi media type
+        media_type = "image/jpeg"
+        if image_data.startswith("data:image/png"):
+            media_type = "image/png"
+        elif image_data.startswith("data:image/jpeg"):
+            media_type = "image/jpeg"
         if "," in image_data:
             image_data = image_data.split(",")[1]
         if not image_data:
@@ -27,7 +33,7 @@ Selalu mulai dengan apa yang kamu lihat, lalu berikan rekomendasi."""
             max_tokens=500,
             system=system,
             messages=[{"role": "user", "content": [
-                {"type": "image", "source": {"type": "base64", "media_type": "image/png", "data": image_data}},
+                {"type": "image", "source": {"type": "base64", "media_type": media_type, "data": image_data}},
                 {"type": "text", "text": command}
             ]}]
         )
@@ -44,6 +50,12 @@ async def screen_agent(request: Request):
         step_history = body.get("step_history", [])
         user_memory = body.get("user_memory", "")
 
+        # Deteksi media type
+        media_type = "image/jpeg"
+        if image_data.startswith("data:image/png"):
+            media_type = "image/png"
+        elif image_data.startswith("data:image/jpeg"):
+            media_type = "image/jpeg"
         if "," in image_data:
             image_data = image_data.split(",")[1]
 
@@ -95,7 +107,7 @@ Apa SATU aksi berikutnya untuk menyelesaikan tugas ini?"""
             max_tokens=400,
             system=system,
             messages=[{"role": "user", "content": [
-                {"type": "image", "source": {"type": "base64", "media_type": "image/png", "data": image_data}},
+                {"type": "image", "source": {"type": "base64", "media_type": media_type, "data": image_data}},
                 {"type": "text", "text": user_prompt}
             ]}]
         )
