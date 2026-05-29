@@ -23,7 +23,7 @@ Jika WhatsApp terbuka: sebutkan chat yang terlihat dan pesan belum dibaca.
 Jika ada aplikasi lain: deskripsikan apa yang terjadi di layar.
 Selalu mulai dengan apa yang kamu lihat, lalu berikan rekomendasi."""
         response = client.messages.create(
-            model="claude-sonnet-4-20250514",
+            model=os.getenv("CLAUDE_MODEL", "claude-sonnet-4-5"),
             max_tokens=500,
             system=system,
             messages=[{"role": "user", "content": [
@@ -91,7 +91,7 @@ Info user: {user_memory if user_memory else 'Tidak ada memori user'}{history_tex
 Apa SATU aksi berikutnya untuk menyelesaikan tugas ini?"""
 
         response = client.messages.create(
-            model="claude-sonnet-4-20250514",
+            model=os.getenv("CLAUDE_MODEL", "claude-sonnet-4-5"),
             max_tokens=400,
             system=system,
             messages=[{"role": "user", "content": [
