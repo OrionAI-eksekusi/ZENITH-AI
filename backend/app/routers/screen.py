@@ -16,7 +16,7 @@ async def analyze_screen(request: Request):
             image_data = image_data.split(",")[1]
         if not image_data:
             return JSONResponse({"status": "error", "response": "Tidak ada screenshot"}, status_code=400)
-        client = anthropic.Anthropic()
+        client = anthropic.Anthropic(api_key=os.getenv("CLAUDE_API_KEY", ""))
         system = """Kamu adalah ZENITH, AI asisten yang menganalisa layar komputer user.
 Jawab dalam Bahasa Indonesia yang natural dan singkat.
 Jika WhatsApp terbuka: sebutkan chat yang terlihat dan pesan belum dibaca.
@@ -47,7 +47,7 @@ async def screen_agent(request: Request):
         if "," in image_data:
             image_data = image_data.split(",")[1]
 
-        client = anthropic.Anthropic()
+        client = anthropic.Anthropic(api_key=os.getenv("CLAUDE_API_KEY", ""))
 
         history_text = ""
         if step_history:
