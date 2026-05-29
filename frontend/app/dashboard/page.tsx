@@ -51,6 +51,9 @@ export default function Home() {
   const clapTimerRef = useRef<any>(null)
   const clapDetectRef = useRef<boolean>(false)
   const activeRef = useRef(false)
+  const wakeWordRecRef = useRef<any>(null)
+  const wakeWordActivateRef = useRef<() => void>(() => {})
+  const [wakeWordDetected, setWakeWordDetected] = useState(false)
   const streamRef = useRef<MediaStream|null>(null)
   const contextRef = useRef<AudioContext|null>(null)
   const processorRef = useRef<ScriptProcessorNode|null>(null)
@@ -216,6 +219,53 @@ export default function Home() {
     const t = setInterval(tick, 1000)
     return () => clearInterval(t)
   }, [])
+
+  // Selalu keep wakeWordActivateRef fresh setiap render
+  useEffect(() => {
+    wakeWordActivateRef.current = () => {
+      if (!activeRef.current) {
+        setWakeWordDetected(true)
+        setTimeout(() => setWakeWordDetected(false), 1800)
+        setActive(true)
+        activeRef.current = true
+        startRecording()
+      }
+    }
+  })
+
+  // Hey ZENITH — wake word detection background
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    if (!SR) return
+    let stopped = false
+    const rec = new SR()
+    wakeWordRecRef.current = rec
+    rec.continuous = true
+    rec.interimResults = true
+    rec.lang = 'id-ID'
+    rec.onresult = (e: any) => {
+      const txt = Array.from(e.results as any[]).map((r: any) => r[0].transcript.toLowerCase()).join(' ')
+      const keywords = ['hey zenith','hei zenith','hai zenith','hey zenit','hei zenit','zenith aktif','zenith bangun','oi zenith']
+      if (keywords.some(w => txt.includes(w))) {
+        wakeWordActivateRef.current()
+        try { rec.abort() } catch {}
+      }
+    }
+    rec.onend = () => { if (!stopped && !activeRef.current) setTimeout(() => { try { rec.start() } catch {} }, 500) }
+    rec.onerror = (e: any) => { if (e?.error !== 'aborted' && !stopped) setTimeout(() => { try { rec.start() } catch {} }, 1200) }
+    setTimeout(() => { try { rec.start() } catch {} }, 1200)
+    return () => { stopped = true; try { rec.abort() } catch {} }
+  }, [])
+
+  // Pause wake word saat ZENITH aktif, resume saat idle
+  useEffect(() => {
+    if (active) {
+      try { wakeWordRecRef.current?.abort() } catch {}
+    } else {
+      setTimeout(() => { try { wakeWordRecRef.current?.start() } catch {} }, 900)
+    }
+  }, [active])
 
   const animateWaveform = (analyser: AnalyserNode) => {
     const data = new Uint8Array(analyser.frequencyBinCount)
