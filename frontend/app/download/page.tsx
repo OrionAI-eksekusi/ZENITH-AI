@@ -3,7 +3,8 @@ import { useRouter } from 'next/navigation'
 
 export default function Download() {
   const router = useRouter()
-  const DMG_URL = 'https://github.com/OrionAI-eksekusi/ZENITH-desktop/releases/download/v1.0.0/ZENITH-1.0.0-arm64.dmg'
+  const DMG_URL = 'https://github.com/OrionAI-eksekusi/ZENITH-desktop/releases/download/v1.0.1/ZENITH-1.0.1-arm64.dmg'
+  const EXE_URL = 'https://github.com/OrionAI-eksekusi/ZENITH-desktop/releases/download/v1.0.1/ZENITH-Setup-1.0.1-x64.exe'
 
   return (
     <>
@@ -89,10 +90,10 @@ export default function Download() {
                   <div style={{fontSize:8,color:'rgba(255,255,255,0.2)',letterSpacing:'0.08em'}}>Windows 10 / 11</div>
                 </div>
               </div>
-              <div style={{padding:'4px 10px',background:'rgba(255,165,0,0.06)',border:'1px solid rgba(255,165,0,0.15)',borderRadius:20,fontSize:8,color:'rgba(255,165,0,0.5)',letterSpacing:'0.1em'}}>SOON</div>
+              <div style={{padding:'4px 10px',background:'rgba(77,123,255,0.08)',border:'1px solid rgba(77,123,255,0.2)',borderRadius:20,fontSize:8,color:'rgba(107,159,255,0.8)',letterSpacing:'0.1em'}}>AVAILABLE</div>
             </div>
             <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,width:'100%',padding:'13px 0',background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.05)',borderRadius:10,color:'rgba(255,255,255,0.15)',fontFamily:'JetBrains Mono,monospace',fontSize:9,letterSpacing:'0.18em'}}>
-              COMING SOON
+              ↓  DOWNLOAD .EXE
             </div>
           </div>
 
