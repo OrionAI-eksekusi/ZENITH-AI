@@ -46,7 +46,7 @@ from app.routers.screen import router as screen_router
 app.include_router(chat.router)
 app.include_router(voice.router)
 app.include_router(gmail.router)
-app.include_router(screen_router.router)
+app.include_router(screen_router)
 app.include_router(auth.router)
 app.include_router(notes.router)
 app.include_router(calendar.router)
