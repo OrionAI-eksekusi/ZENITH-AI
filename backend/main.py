@@ -44,3 +44,4 @@ async def admin_upgrade_user(email: str, plan: str = "premium", secret: str = ""
             raise HTTPException(status_code=404, detail="User tidak ditemukan")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
