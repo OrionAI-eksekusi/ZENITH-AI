@@ -438,12 +438,13 @@ export default function Home() {
   const isAgentCommand = (text: string) => {
     const l = text.toLowerCase()
     return (
+      // Hanya task kompleks yang butuh klik/ketik — BUKAN sekedar buka website
       (l.includes('balas') && (l.includes('wa') || l.includes('whatsapp') || l.includes('chat'))) ||
-      (l.includes('buka') && (l.includes('wa') || l.includes('whatsapp') || l.includes('traveloka') || l.includes('tokopedia') || l.includes('shopee') || l.includes('instagram') || l.includes('telegram'))) ||
+      (l.includes('daftarkan') || l.includes('daftarin') || l.includes('registerkan')) ||
+      (l.includes('isi form') || l.includes('isi formulir') || l.includes('isi biodata')) ||
       (l.includes('cari') && l.includes('chat')) ||
-      l.includes('isi form') || l.includes('isi formulir') || l.includes('isi biodata') ||
       l.includes('klik') || l.includes('carikan chat') ||
-      (l.includes('tolong') && (l.includes('buka') || l.includes('isi') || l.includes('balas')))
+      (l.includes('ada wa') || l.includes('cek wa') || l.includes('lihat wa'))
     )
   }
 
