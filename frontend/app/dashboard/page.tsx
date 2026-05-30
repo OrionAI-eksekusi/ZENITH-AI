@@ -270,6 +270,32 @@ export default function Home() {
     }
   }, [active])
 
+  // Keyboard shortcut Cmd+Shift+Z untuk desktop (pengganti wake word)
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'Z') {
+        e.preventDefault()
+        if (!activeRef.current) {
+          setActive(true)
+          activeRef.current = true
+          startRecording()
+        }
+      }
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [])
+
+  // Watchdog — restart wake word setiap 3 detik kalau mati
+  useEffect(() => {
+    const watchdog = setInterval(() => {
+      if (!activeRef.current && wakeWordRecRef.current) {
+        try { wakeWordRecRef.current.start() } catch {}
+      }
+    }, 3000)
+    return () => clearInterval(watchdog)
+  }, [])
+
   const animateWaveform = (analyser: AnalyserNode) => {
     const data = new Uint8Array(analyser.frequencyBinCount)
     const animate = () => {
@@ -368,6 +394,8 @@ export default function Home() {
         const matches = [...String(data.response).matchAll(/\[OPEN:(.*?)\]/g)]
         if ((navigator.userAgent.includes('Electron') || !!(window as any).electronAPI)) {
           matches.forEach(m => addPanel(m[1]))
+          // Tetap listening setelah buka panel
+          setTimeout(() => { if(activeRef.current) startRecording() }, 1000)
         } else {
           const first = matches[0]
           if (first) { setWebviewUrl(normalizeUrl(first[1])); setOrbMini(true) }
@@ -436,16 +464,7 @@ export default function Home() {
 
   // Deteksi computer use agent command
   const isAgentCommand = (text: string) => {
-    const l = text.toLowerCase()
-    return (
-      // Hanya task kompleks yang butuh klik/ketik — BUKAN sekedar buka website
-      (l.includes('balas') && (l.includes('wa') || l.includes('whatsapp') || l.includes('chat'))) ||
-      (l.includes('daftarkan') || l.includes('daftarin') || l.includes('registerkan')) ||
-      (l.includes('isi form') || l.includes('isi formulir') || l.includes('isi biodata')) ||
-      (l.includes('cari') && l.includes('chat')) ||
-      l.includes('klik') || l.includes('carikan chat') ||
-      (l.includes('ada wa') || l.includes('cek wa') || l.includes('lihat wa'))
-    )
+    return false // Agent disabled — gunakan flow normal
   }
 
   // Computer Use Agent executor
