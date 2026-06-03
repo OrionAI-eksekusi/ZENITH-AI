@@ -12,7 +12,7 @@ export default function Download() {
     return () => window.removeEventListener('resize', check)
   }, [])
   const DMG_URL = 'https://github.com/OrionAI-eksekusi/ZENITH-desktop/releases/download/v1.0.1/ZENITH-1.0.1-arm64.dmg'
-  const EXE_URL = 'https://github.com/OrionAI-eksekusi/ZENITH-desktop/releases/download/v1.0.1/ZENITH-Setup-1.0.1-x64.exe'
+  const EXE_URL = 'https://github.com/OrionAI-eksekusi/ZENITH-desktop/releases/download/v1.0.1/ZENITH.Setup.1.0.1.exe'
 
   return (
     <>
