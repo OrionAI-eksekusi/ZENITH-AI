@@ -91,16 +91,21 @@ export default function Home() {
     let lastClap = 0
     let clapTimer: any = null
     let prevAvg = 0
-    navigator.mediaDevices.getUserMedia({audio: true}).then(stream => {
-      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)()
-      const analyser = audioCtx.createAnalyser()
-      const source = audioCtx.createMediaStreamSource(stream)
+    let rafActive = true
+    let clapStream: MediaStream | null = null
+    let clapCtx: AudioContext | null = null
+    navigator.mediaDevices.getUserMedia({audio: true}).then((stream: MediaStream) => {
+      clapStream = stream
+      clapCtx = new (window.AudioContext || (window as any).webkitAudioContext)()
+      const analyser = clapCtx.createAnalyser()
+      const source = clapCtx.createMediaStreamSource(stream)
       source.connect(analyser)
       analyser.fftSize = 256
       const data = new Uint8Array(analyser.frequencyBinCount)
       const detect = () => {
+        if (!rafActive) return
         analyser.getByteFrequencyData(data)
-        const avg = data.reduce((a,b) => a+b, 0) / data.length
+        const avg = data.reduce((a: number, b: number) => a+b, 0) / data.length
         const now = Date.now()
         const isClap = avg > 90 && (avg - prevAvg) > 40
         prevAvg = avg
@@ -118,13 +123,18 @@ export default function Home() {
       }
       detect()
     }).catch(() => {})
+    return () => {
+      rafActive = false
+      clapStream?.getTracks().forEach((t: MediaStreamTrack) => t.stop())
+      try { clapCtx?.close() } catch {}
+    }
   }, [])
 
   // Clap detection — tepuk tangan 2x untuk tutup webview (mode orb web)
   const startClapDetection = () => {
     if (clapDetectRef.current) return
     clapDetectRef.current = true
-    navigator.mediaDevices.getUserMedia({audio: true}).then(stream => {
+    navigator.mediaDevices.getUserMedia({audio: true}).then((stream: MediaStream) => {
       const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)()
       const analyser = audioCtx.createAnalyser()
       const source = audioCtx.createMediaStreamSource(stream)
@@ -135,9 +145,12 @@ export default function Home() {
       let lastClap = 0
       let prevAvg = 0
       const detect = () => {
-        if (!clapDetectRef.current) return
+        if (!clapDetectRef.current) {
+          try { audioCtx.close() } catch {}
+          return
+        }
         analyser.getByteFrequencyData(data)
-        const avg = data.reduce((a,b) => a+b, 0) / data.length
+        const avg = data.reduce((a: number, b: number) => a+b, 0) / data.length
         const now = Date.now()
         const isClap = avg > 90 && (avg - prevAvg) > 40
         prevAvg = avg
@@ -149,7 +162,8 @@ export default function Home() {
             setWebviewUrl('')
             setOrbMini(false)
             clapDetectRef.current = false
-            stream.getTracks().forEach(t => t.stop())
+            stream.getTracks().forEach((t: MediaStreamTrack) => t.stop())
+            try { audioCtx.close() } catch {}
             return
           }
           clearTimeout(clapTimerRef.current)
@@ -195,7 +209,8 @@ export default function Home() {
     }
     checkPresence()
     const presenceInterval = setInterval(checkPresence, 5 * 60 * 1000)
-    setTimeout(() => clearInterval(presenceInterval), 60 * 60 * 1000)
+    const presenceTimeout = setTimeout(() => clearInterval(presenceInterval), 60 * 60 * 1000)
+    return () => { clearInterval(presenceInterval); clearTimeout(presenceTimeout) }
 
     const isFirstVisit = !localStorage.getItem('zenith_visited')
     if (isFirstVisit) {
@@ -349,12 +364,12 @@ export default function Home() {
     cancelAnimationFrame(waveAnimRef.current)
     setWaveform(Array(20).fill(2))
     processorRef.current?.disconnect()
-    streamRef.current?.getTracks().forEach(t => t.stop())
+    streamRef.current?.getTracks().forEach((t: MediaStreamTrack) => t.stop())
     const allChunks = chunksRef.current
     chunksRef.current = []
     if (allChunks.length === 0) { if (activeRef.current) startRecording(); return }
     updateState('thinking')
-    const total = allChunks.reduce((s,c) => s+c.length, 0)
+    const total = allChunks.reduce((s: number, c: Float32Array) => s+c.length, 0)
     const merged = new Float32Array(total)
     let offset = 0
     for (const c of allChunks) { merged.set(c, offset); offset += c.length }
@@ -386,7 +401,7 @@ export default function Home() {
         return
       }
       setTranscript(data.transcript)
-      setResponse(data.response)
+      setResponse((data.response || '').replace(/---/g, '').trim())
       if(data.transcript) setChatHistory(prev => [data.transcript, ...prev].slice(0, 5))
 
       // Detect OPEN command — desktop: panel di dalam; web: orb klik
@@ -463,7 +478,7 @@ export default function Home() {
   }
 
   // Deteksi computer use agent command
-  const isAgentCommand = (text: string) => {
+  const isAgentCommand = (_text: string) => {
     return false // Agent disabled — gunakan flow normal
   }
 
@@ -623,11 +638,11 @@ export default function Home() {
         const ttsData = await ttsRes.json()
         if (ttsData.audio) {
           const audio = new Audio(`data:audio/mp3;base64,${ttsData.audio}`)
-          audio.play()
           audio.onended = () => {
             updateState('listening')
             if (activeRef.current) startRecording()
           }
+          audio.play()
         } else {
           updateState('listening')
           if (activeRef.current) startRecording()
@@ -661,7 +676,7 @@ export default function Home() {
       cancelAnimationFrame(waveAnimRef.current)
       setWaveform(Array(20).fill(2))
       processorRef.current?.disconnect()
-      streamRef.current?.getTracks().forEach(t => t.stop())
+      streamRef.current?.getTracks().forEach((t: MediaStreamTrack) => t.stop())
       setActive(false); updateState('idle'); setTranscript(''); setResponse('')
     } else { setActive(true); activeRef.current = true; await startRecording() }
   }
